@@ -1,0 +1,10 @@
+
+page 1
+
+NIPS (main header) -Gill Sans MT (font- 18) blue colour
+all main side header (Blue colour)Gill Sans MT (font- 16)
+
+patient details box font- Segoe UI(10)
+
+Screen result: Low risk(green colour)
+table 1 Results all Low risk(green colour)

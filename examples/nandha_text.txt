@@ -1,0 +1,185 @@
+                                                                                                                                   
+ 
+ Page 1 of 6    Non-Invasive Prenatal Screening (NIPS ) 
+ 
+ 
+T est Indication  
+Bilateral hypoplastic nasal bone noted   
+T est Performed  
+NIPS for 23 pairs of c hromosomes (including sex chromosomal aneuploidies)  
+Result Summary  
+ 
+Aneuploidies  Results  
+Chromosome 21  Low risk  
+Chromosome 18  Low risk  
+Chromosome 13  Low risk  
+Sex Chromosome s*  Low risk  
+Other Autosom es Low risk  
+ Patient name  : Dr. Nandhara  Specimen  : Peripheral blood  
+Date Of Birth/ Age : 09-07-1997 / 29 Years  PIN : AND25810038597  
+Gestational Age   : 20 Weeks / 5 Days Sample Number  : 812529897  
+Pregnancy Type ; 
+Status  : Natural  Pregnancy; Singleton  Sample collection 
+date  : 07-02-2026  
+Referring Clinician  : Dr. Anusha  Sample received date  : 08-02-2026  
+Hospital/Clinic  : Arokya Women ’s Center - Salem  Report date  : 12-02-2026 
+This test does not reveal sex of the fetus & confers to PNDT act, 1994  
+Screen result: Low risk  Fetal fr action: 9.50%  
+ 
+ 
+ 
+ Page 2 of 6 Chromosome tested  Z Score  Test result  Reference  
+interval  
+Chromosome 1  -0.77  Low risk  -6<Z score<6  
+Chromosome 2  -0.15  Low risk  -6<Z score<6  
+Chromosome 3  -0.65  Low risk  -6<Z score<6  
+Chromosome 4  -0.01  Low risk  -6<Z score<6  
+Chromosome 5  0.47  Low risk  -6<Z score<6  
+Chromosome 6  1.18  Low risk  -6<Z score<6  
+Chromosome 7  0.16  Low risk  -6<Z score<6  
+Chromosome 8  1.92  Low risk  -6<Z score<6  
+Chromosome 9  0.14  Low risk  -6<Z score<6  
+Chromosome 10  2.67  Low risk  -6<Z score<6  
+Chromosome 11  1.04  Low risk  -6<Z score<6  
+Chromosome 12  -0.31  Low risk  -6<Z score<6  
+Chromosome 13  -0.63  Low risk  -6<Z score<2.8  
+Chromosome 14  -0.39  Low risk  -6<Z score<6  
+Chromosome 15  -0.37  Low risk -6<Z score<6  
+Chromosome 16  2.66  Low risk  -6<Z score<6  
+Chromosome 17  -2.00  Low risk  -6<Z score<6  
+Chromosome 18  2.11  Low risk  -6<Z score<2.8  
+Chromosome 19  1.90  Low risk  -6<Z score<6  
+Chromosome 20  1.66  Low risk  -6<Z score<6  
+Chromosome 21  -0.31  Low risk -6<Z score<2.8  
+Chromosome 22  2.05  Low risk  -6<Z score<6  
+ 
+*As per PCPNDT act, the reference Z scores for sex  chromosomal aneuploidies will not  be provided.  
+ 
+ 
+ 
+ Page 3 of 6 Interpretation  and follow -up 
+▪ The results show low risk for all the autosomes and sex chromosomes .  
+▪ The fetal fraction was sufficient for analysis.  
+▪ A low  risk resul t means that the baby has a low probability  of having the condition  listed in the report. 
+The results should be communicated by the clinician with appropriate counseling . 
+▪ A low -risk result does not eliminate the possibility of aneuploidy or other genetic disorders.  
+▪ All results must be correlated with clinical findings, ultrasound, and maternal risk factors.  
+▪ Diagnostic confirmation is strongly recommended if any of the below are :  
+          Positive/high -risk NIPT  
+          Ultrasound abnormalities  
+          High -risk maternal age or prior affected pregnancy  
+          No-call/low fetal fraction samples  
+Recommendation  
+▪ Genetic counseling is recommended.  
+▪ If ultrasound/NT scan shows any abnormality or serum markers indicate high risk, invasive testing  by 
+amniocentesis with chromosomal microarray  is mandated even if NIPS is low risk.  
+T est Method  
+Maternal whole blood sample wa s tak en from the pregnant mother after  10-week gestation with no risk to 
+the fetus. The c irculating  cell-free placental DNA was isolated and purified , which was then  conve rted into  
+genomic DNA library using Yourgene cfDNA Library prep kit. This was followed by a utomated size selection 
+of fragment lengths by QS250 for enriching fetal fraction . The enriched  sample pool was subjected to high 
+throughput sequencing using Ion GeneStudio S5 Plus ™ System . Finally, a nalysis was performed using Sage 
+Link V2.  
+T est Limitations  
+ 
+Test performance is valid only for full chromosomal aneuploidies involving all the autosomes  and sex 
+chromosomes  with an accuracy of up to 99% for aneuploidies pertaining to chromosomes 13, 18 and 21 . The 
+method is intended for use in pregnant women who are at least 10+ weeks pregnant. The method is suitable 
+for both singleton and twin pregnancies. The accuracy may be slightly lower in twin pregnancies due to 
+multiple sources of fetal DNA. Patients with malignancy or a history of malignancy, patients with bone marrow 
+or organ transplant, patients pregnant with more than 2 fetuses  are not eligible for the test.   
+For vanishing twins , sampling must be performed 8 weeks after vanishing event . The test is not intended and 
+ 
+ 
+ 
+ Page 4 of 6 not validated for mosaicism, triploidy, partial trisomy /monosomy, uniparental disomy  or translocations. Other 
+genomic abnormalities not covered by this assay may impact the phenotype.  
+A high risk  result for twin  pregnancies indicates high probability  for the presence of at least one affected fetus.  
+Pregnant women  with a low risk  test result do not ensure an unaffected pregnancy  as this is a screening 
+test.  Although this test is accurate , there is still a small possibility for false positive or false negative results. 
+This may be caused by technical and/or biological limitations, including  but not limited to confined placental 
+mosaicism (CPM) or other types of mosaicism, maternal constitutional or somatic chromosomal abnormalities, 
+residual cfDNA from a vanished  twin or other rare molecular events.  
+This test is not a diagnostic but a screening test and results should be considered in the context of other 
+clinical criteria.  Clinical  correlation with ultrasound findings, and other clinical data and tests is recommended.   
+If definitive diagnosis is desired, invasive prenatal testing by chorionic villus biopsy (CVS) or amniocentesis is 
+necessary . The referral clinician is responsible for  counselling before and after the test including the provision 
+of advice regarding the need for additional invasive genetic testing.   
+ 
+Regulatory & Validation Notes  
+Test performance is based on laboratory -validated parameters; results may vary across populations and 
+platforms.  
+Not intended for use in multi -fetal reduction, mosaic embryo transfer, or post -transplant pregnancies.  
+ 
+Disclaimer  
+ 
+No irreversible actions should be taken based solely upon the results of this screening test. The manner in 
+which this information is used to guide patient care is the responsibility of the health care provider, including 
+advising for the need for genetic counseling or diagnostic testing. Any test should be interpreted in the context 
+of all available clinical findings. As with any screening test, any positive result should be confirmed with 
+diagnostic testing.  
+ 
+ 
+ 
+ 
+ Page 5 of 6 Test specifications  
+ 
+Table  1: Performance of Sage 32 NIPT workflow in  singleton pregnancies  
+ 
+Condition  Sensitivity  Specificity  PPV NPV  FPR FNR 
+Trisomy 21  99%  
+95%CI:99.49 -100% >99%  
+95%CI: 99.9 9-100% >99.99%  99.99%  <0.1% 0.1% 
+Trisomy 18  99%  
+95%CI: 96.82 -99.99 % >99%  
+95%CI: 99.9 9-100% >99.99%  99.99%  <0.1%  0.58%  
+Trisomy 13  >99%  
+95%CI: 96.87 -100% >99%  
+95%CI: 99.9 9-100% >99.99%  >99.99%  <0.1%  <0.1%  
+Sex chromosomal 
+aneuploidies  >98 % 
+95%CI: 99.31 -100% >98% 
+95%CI: 99.9 9-100% 99.81%  >99.99%  0.0014%  <0.01%  
+Other autosomal 
+aneuploidies  >90% 
+95%CI: 98.03 -100% >90% 
+95%CI: 99.9 9-100% >99.99%  >99.99%  <0.01%  <0.01%  
+PPV – Positive predictive value; NPV – Negative predictive value; FPR – False positive rate; FNR – False negative rate  
+ 
+ 
+ Table 2: Performance of Sage 32 NIPT workflow in  twin  pregnancies  
+ 
+Condition  Sensitivity  Specificity  PPV NPV  FPR FNR 
+Trisomy 21  >98% >98% >99.99%  >99.99%  <0.01%  <0.01%  
+Trisomy 18  >98% >98% >98% >99.99%  <0.01%  <0.01%  
+Trisomy 13  >98% >98% >98% >99.99%  <0.01%  <0.01%  
+Sex chromosomal 
+aneuploidies  >97% >97% >97% >99.99%  0.0014%  <0.01%  
+Other autosomal 
+aneuploidies  >95% >95% >95% >99.99%  <0.01%  <0.01%  
+ PPV – Positive predictive value; NPV – Negative predictive value; FPR – False positive rate; FNR – False negative rate  
+ 
+ 
+ 
+ 
+ Page 6 of 6 Prenatal T esting Algorithm  
+ 
+ 
+  
+ 
+References  
+1. Bianchi DW, Platt LD, Goldberg JD, Abuhamad AZ, Sehnert AJ, Rava RP. Genome -wide fetal aneuploidy 
+detection by maternal plasma DNA sequencing. Obstetrics & Gynecology. 2012 May 1;119(5):890 -901.  
+2. Chiu RW, Akolekar R, Zheng YW, Leung TY, Sun H, Chan KA, Lun FM, Go AT, Lau ET, To WW, Leung WC. 
+Non -invasive prenatal assessment of trisomy 21 by multiplexed maternal plasma DNA sequencing: large 
+scale validity study. Bmj. 2011 Jan 11;342:c7401.  
+3. Chiu RW, Lo YM. Noninvasive prenatal diagnosis empowered by high‐throughput sequencing. Prenatal 
+diagnosis. 2012 Apr 1;32(4):401 -6. 
+4. Dugoff L. Cell -Free DNA Screening for Fetal Aneuploidy. Topics in Obstetrics & Gynecology. 2017 Jan 
+15;37(1):1 -7. 
+ 
+  This re port has been reviewed and approved by:  
+ 
+Dr. Sachin D. Honguntikar                                                                                                              Dr. Suriyakumar.G        
+Head – Anderson Clinical  Genetics                                                                                               Director  
+

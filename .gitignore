@@ -1,0 +1,25 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environments
+.venv/
+venv/
+ENV/
+
+# Reports and Previews (Temporary)
+*.pdf
+*.docx
+*.json
+!nipt_assets.json
+!nipt_config.json
+
+# Logs
+*.log
+nipt_err.txt
+nipt_out*.txt
+
+# OS generated files
+.DS_Store
+Thumbs.db
