@@ -608,9 +608,9 @@ class NIPTApp(QMainWindow):
         layout.addWidget(res_grp)
 
         self._manual_dir = self._auto_dir = None
-        self._manual_file = self._auto_file = None
-        def_m = "/data/Sethu/NIPT-Report/Comparison/Manual"
-        def_a = "/data/Sethu/NIPT-Report/Comparison/Automated"
+        curr_dir = os.path.dirname(os.path.abspath(__file__))
+        def_m = os.path.join(curr_dir, "Comparison", "Manual")
+        def_a = os.path.join(curr_dir, "Comparison", "Automated")
         if os.path.exists(def_m): self.manual_dir_lbl.setText(def_m)
         if os.path.exists(def_a): self.auto_dir_lbl.setText(def_a)
         return tab

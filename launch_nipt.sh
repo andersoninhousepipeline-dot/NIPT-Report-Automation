@@ -5,12 +5,16 @@
 set -e
 
 echo "==========================================="
-echo "  NIPT Professional Reporting Suite"
+echo "  NIPT Report Generator"
 echo "==========================================="
 echo ""
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$DIR"
+
+# Ensure required folders exist
+mkdir -p Comparison/Manual
+mkdir -p Comparison/Automated
 
 # Create venv if missing
 if [ ! -d ".venv" ]; then

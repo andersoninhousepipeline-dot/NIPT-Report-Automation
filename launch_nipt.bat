@@ -3,6 +3,10 @@ SETLOCAL EnableDelayedExpansion
 TITLE NIPT Report Generator
 cd /d "%~dp0"
 
+REM Ensure required folders exist
+if not exist "Comparison\Manual" mkdir "Comparison\Manual"
+if not exist "Comparison\Automated" mkdir "Comparison\Automated"
+
 echo.
 echo ===========================================
 echo   NIPT Report Generator
