@@ -90,7 +90,7 @@ class NIPTReportTemplate:
 
     def _register_fonts(self):
         base_path = os.path.dirname(os.path.abspath(__file__))
-        fonts_dir = os.path.join(os.path.dirname(base_path), "PGTA-Report", "assets", "pgta", "fonts")
+        fonts_dir = os.path.join(base_path, "fonts")
         
         if not os.path.exists(fonts_dir):
             return
@@ -100,6 +100,8 @@ class NIPTReportTemplate:
             {'name': 'SegoeUI-Bold', 'file': 'SEGOEUIB.TTF'},
             {'name': 'GillSansMT', 'file': 'GIL_____.TTF'},
             {'name': 'GillSansMT-Bold', 'file': 'GILB____.TTF'},
+            {'name': 'Calibri', 'file': 'CALIBRI.TTF'},
+            {'name': 'Calibri-Bold', 'file': 'CALIBRIB.TTF'},
         ]
         
         registered = []
@@ -115,6 +117,8 @@ class NIPTReportTemplate:
             registerFontFamily('SegoeUI', normal='SegoeUI', bold='SegoeUI-Bold')
         if 'GillSansMT' in registered and 'GillSansMT-Bold' in registered:
             registerFontFamily('GillSansMT', normal='GillSansMT', bold='GillSansMT-Bold')
+        if 'Calibri' in registered and 'Calibri-Bold' in registered:
+            registerFontFamily('Calibri', normal='Calibri', bold='Calibri-Bold')
 
     def _get_font(self, name, fallback):
         try:
