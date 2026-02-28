@@ -1,5 +1,5 @@
 """
-NIPT Report Generator – Desktop Application v4.0
+NIPT Report Generator – Desktop Application
 UI mirrors PGT-A generator exactly:
   - Manual tab: left form + right QPdfView, 1s debounce auto-refresh
   - Batch tab: left patient list | center full inline editor | right PDF preview
@@ -217,7 +217,7 @@ class NIPTApp(QMainWindow):
 
     def __init__(self):
         super().__init__()
-        self.setWindowTitle(self.APP_NAME + " v4.0")
+        self.setWindowTitle(self.APP_NAME)
         self.setMinimumSize(1180, 820)
 
         self.setStyleSheet(self.APP_STYLESHEET)
@@ -234,7 +234,7 @@ class NIPTApp(QMainWindow):
 
         self._init_ui()
         self._load_settings()
-        self.statusBar().showMessage(f"Ready  •  {self.APP_NAME} v4.0")
+        self.statusBar().showMessage(f"Ready  •  {self.APP_NAME}")
 
     # ─────────────────────────────────────────────────────────────────────────
     # UI Shell
