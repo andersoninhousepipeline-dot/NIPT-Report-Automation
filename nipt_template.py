@@ -218,7 +218,11 @@ class NIPTReportTemplate:
             if doc.page == 1:
                 canvas.setFont(self._get_font('GillSansMT-Bold', 'Helvetica-Bold'), 18)
                 canvas.setFillColor(colors.HexColor(self.COLORS['blue_header']))
-                canvas.drawCentredString(self.PAGE_WIDTH / 2.0, self.PAGE_HEIGHT - 80, "Non-Invasive Prenatal Screening (NIPS)")
+                if with_logo:
+                    # Place title explicitly below the logo
+                    canvas.drawCentredString(self.PAGE_WIDTH / 2.0, self.PAGE_HEIGHT - 170, "Non-Invasive Prenatal Screening (NIPS)")
+                else:
+                    canvas.drawCentredString(self.PAGE_WIDTH / 2.0, self.PAGE_HEIGHT - 80, "Non-Invasive Prenatal Screening (NIPS)")
             
             # Footer text with address
             if with_logo:
@@ -238,7 +242,10 @@ class NIPTReportTemplate:
             canvas.restoreState()
 
         # Page 1
-        story.append(Spacer(1, 20)) # Offset from header
+        if with_logo:
+            story.append(Spacer(1, 100)) # Offset from header with space for new title position
+        else:
+            story.append(Spacer(1, 20)) # Offset from header
         
         # Patient Info Grid MUST be first on Page 1
         story.append(self._create_patient_grid(data))
@@ -429,9 +436,9 @@ class NIPTReportTemplate:
             
         table_data = [
             [P("Patient name", data.get('name','')), P("Specimen", data.get('specimen','Peripheral blood').title())],
-            [P("Date Of Birth/Age", f"{fmt_date(data.get('dob',''))} / {data.get('age','')}" if data.get('age') else fmt_date(data.get('dob',''))), P("PIN", data.get('pin',''))],
+            [P("Date of Birth", fmt_date(data.get('dob',''))), P("PIN", data.get('pin',''))],
             [P("Gestational Age", data.get('ga','')), P("Sample Number", data.get('sample_id',''))],
-            [P("Pregnancy Type;<br/>Status", f"{data.get('preg_type','').title()}; {data.get('preg_status','').title()}".strip('; ')), P("Sample collection date", fmt_date(data.get('collection_date','')))],
+            [P("Pregnancy Type;\nStatus", f"{data.get('preg_type','').title()}; {data.get('preg_status','').title()}".strip('; ')), P("Sample collection date", fmt_date(data.get('collection_date','')))],
             [P("Referring Clinician", data.get('clinician','')), P("Sample received date", fmt_date(data.get('received_date','')))],
             [P("Hospital/Clinic", data.get('hospital','')), P("Report date", fmt_date(data.get('report_date', datetime.now().strftime('%d/%m/%Y'))))]
         ]
@@ -501,7 +508,7 @@ class NIPTReportTemplate:
             ref = "-6&lt;Z score&lt;2.8" if i in [13, 18, 21] else "-6&lt;Z score&lt;6"
             table_data.append([
                 Paragraph(f"Chromosome {i}", value_style_center),
-                Paragraph(f"{val:.3f}", value_style_center),
+                Paragraph(f"{val:.2f}", value_style_center),
                 Paragraph(risk, value_style_center),
                 Paragraph(ref, value_style_center)
             ])

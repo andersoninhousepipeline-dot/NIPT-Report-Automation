@@ -315,7 +315,7 @@ class NIPTApp(QMainWindow):
         for key, label in [
             ("name",            "Patient Name"),
             ("pin",             "PIN / MRN"),
-            ("dob",             "Date of Birth / Age"),
+            ("dob",             "Date of Birth"),
             ("ga",              "Gestational Age"),
             ("sample_id",       "Sample ID"),
             ("collection_date", "Collection Date"),
@@ -345,14 +345,14 @@ class NIPTApp(QMainWindow):
         c1.setLabelAlignment(Qt.AlignmentFlag.AlignRight)
         c2.setLabelAlignment(Qt.AlignmentFlag.AlignRight)
         for i in range(1, 12):
-            self.m[f"chr{i}"] = QLineEdit("0.000")
+            self.m[f"chr{i}"] = QLineEdit("0.00")
             self.m[f"chr{i}"].textChanged.connect(self._schedule_preview)
             c1.addRow(f"Chr {i}:", self.m[f"chr{i}"])
         for i in range(12, 23):
-            self.m[f"chr{i}"] = QLineEdit("0.000")
+            self.m[f"chr{i}"] = QLineEdit("0.00")
             self.m[f"chr{i}"].textChanged.connect(self._schedule_preview)
             c2.addRow(f"Chr {i}:", self.m[f"chr{i}"])
-        self.m["chrX"] = QLineEdit("0.000")
+        self.m["chrX"] = QLineEdit("0.00")
         self.m["chrX"].textChanged.connect(self._schedule_preview)
         c2.addRow("Chr X:", self.m["chrX"])
         z_grid.addLayout(c1); z_grid.addLayout(c2)
@@ -795,7 +795,7 @@ class NIPTApp(QMainWindow):
 
     def _clear_form(self):
         for k, w in self.m.items():
-            w.setText("0.000" if k.startswith("chr") or k == "ff" else "")
+            w.setText("0.00" if k.startswith("chr") or k == "ff" else "")
 
     # ─────────────────────────────────────────────────────────────────────────
     # Batch: load Excel
@@ -836,7 +836,7 @@ class NIPTApp(QMainWindow):
                 bdp = {
                     "name":            str(p.get("Patient Name",         p.get("Sample Name",""))),
                     "pin":             str(p.get("PIN",                   p.get("Sample Name",""))),
-                    "dob":             str(p.get("Date of birth/Age",     p.get("Age",""))).replace(" 00:00:00",""),
+                    "dob":             str(p.get("Date of birth/Age",     p.get("Age",""))).replace(" 00:00:00","").split(" /")[0],
                     "ga":              str(p.get("Gestational Age",       "")),
                     "sample_id":       str(p.get("Sample ID",            p.get("Sample Name",""))),
                     "collection_date": str(p.get("Collection date",       p.get("Col Date",""))).replace(" 00:00:00",""),
@@ -850,10 +850,10 @@ class NIPTApp(QMainWindow):
                     "ff":              str(ff_pct),
                 }
                 for i in range(1, 23):
-                    try:   bdp[f"chr{i}"] = f"{float(p.get(f'chr{i}', 0) or 0):.3f}"
-                    except: bdp[f"chr{i}"] = "0.000"
-                try:   bdp["chrX"] = f"{float(p.get('chrX', 0) or 0):.3f}"
-                except: bdp["chrX"] = "0.000"
+                    try:   bdp[f"chr{i}"] = f"{float(p.get(f'chr{i}', 0) or 0):.2f}"
+                    except: bdp[f"chr{i}"] = "0.00"
+                try:   bdp["chrX"] = f"{float(p.get('chrX', 0) or 0):.2f}"
+                except: bdp["chrX"] = "0.00"
 
                 self.batch_patients.append(bdp)
 
@@ -906,7 +906,7 @@ class NIPTApp(QMainWindow):
         for key, label in [
             ("name",            "Patient Name"),
             ("pin",             "PIN / MRN"),
-            ("dob",             "Date of Birth / Age"),
+            ("dob",             "Date of Birth"),
             ("ga",              "Gestational Age"),
             ("sample_id",       "Sample ID"),
             ("collection_date", "Collection Date"),
@@ -940,16 +940,16 @@ class NIPTApp(QMainWindow):
         zc1.setLabelAlignment(Qt.AlignmentFlag.AlignRight)
         zc2.setLabelAlignment(Qt.AlignmentFlag.AlignRight)
         for i in range(1, 12):
-            e = QLineEdit(p.get(f"chr{i}","0.000"))
+            e = QLineEdit(p.get(f"chr{i}","0.00"))
             e.textChanged.connect(self._schedule_batch_preview)
             self.be[f"chr{i}"] = e
             zc1.addRow(f"Chr {i}:", e)
         for i in range(12, 23):
-            e = QLineEdit(p.get(f"chr{i}","0.000"))
+            e = QLineEdit(p.get(f"chr{i}","0.00"))
             e.textChanged.connect(self._schedule_batch_preview)
             self.be[f"chr{i}"] = e
             zc2.addRow(f"Chr {i}:", e)
-        exw = QLineEdit(p.get("chrX","0.000"))
+        exw = QLineEdit(p.get("chrX","0.00"))
         exw.textChanged.connect(self._schedule_batch_preview)
         self.be["chrX"] = exw
         zc2.addRow("Chr X:", exw)

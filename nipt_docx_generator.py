@@ -351,12 +351,12 @@ class NIPTDocxGenerator:
             
         table = self.doc.add_table(rows=6, cols=2)
         mapping = [
-            ("Patient name       : ", data.get('name',''), "Specimen                 : ", data.get('specimen','Peripheral blood').title()),
-            ("Date Of Birth/Age : ", f"{fmt_date(data.get('dob',''))} / {data.get('age','')}" if data.get('age') else fmt_date(data.get('dob','')), "PIN                      : ", data.get('pin','')),
-            ("Gestational Age    : ", data.get('ga',''), "Sample Number            : ", data.get('sample_id','')),
-            ("Pregnancy Type;\nStatus             : ", f"{data.get('preg_type','').title()}; {data.get('preg_status','').title()}".strip('; '), "Sample collection date : ", fmt_date(data.get('collection_date',''))),
-            ("Referring Clinician : ", data.get('clinician',''), "Sample received date : ", fmt_date(data.get('received_date',''))),
-            ("Hospital/Clinic    : ", data.get('hospital',''), "Report date              : ", fmt_date(data.get('report_date', datetime.now().strftime('%d-%m-%Y'))))
+            ("Patient name        : ", data.get('name',''), "Specimen                  : ", data.get('specimen','Peripheral blood').title()),
+            ("Date of Birth       : ", fmt_date(data.get('dob','')), "PIN                       : ", data.get('pin','')),
+            ("Gestational Age     : ", data.get('ga',''), "Sample Number             : ", data.get('sample_id','')),
+            ("Pregnancy Type;\nStatus              : ", f"{data.get('preg_type','').title()}; {data.get('preg_status','').title()}".strip('; '), "Sample collection date  : ", fmt_date(data.get('collection_date',''))),
+            ("Referring Clinician : ", data.get('clinician',''), "Sample received date  : ", fmt_date(data.get('received_date',''))),
+            ("Hospital/Clinic     : ", data.get('hospital',''), "Report date               : ", fmt_date(data.get('report_date', datetime.now().strftime('%d-%m-%Y'))))
         ]
         
         for i, (l1, l2, r1, r2) in enumerate(mapping):
@@ -433,7 +433,7 @@ class NIPTDocxGenerator:
             row = table.rows[i]
             row.cells[0].text = f"  Chromosome {i}"
             row.cells[0].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.LEFT
-            row.cells[1].text = f"{val:.3f}"
+            row.cells[1].text = f"{val:.2f}"
             row.cells[1].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
             for c in range(4):
                 self._set_cell_background(row.cells[c], self.COLORS['grey_bg'])
