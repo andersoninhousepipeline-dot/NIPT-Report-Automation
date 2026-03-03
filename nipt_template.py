@@ -214,15 +214,7 @@ class NIPTReportTemplate:
                     img = Image(BytesIO(logo_data), width=self.CONTENT_WIDTH, height=75)
                     img.drawOn(canvas, self.MARGIN_LEFT, self.PAGE_HEIGHT - 65)
                 except: pass
-            # Title centered
-            if doc.page == 1:
-                canvas.setFont(self._get_font('GillSansMT-Bold', 'Helvetica-Bold'), 18)
-                canvas.setFillColor(colors.HexColor(self.COLORS['blue_header']))
-                if with_logo:
-                    # Place title explicitly below the logo
-                    canvas.drawCentredString(self.PAGE_WIDTH / 2.0, self.PAGE_HEIGHT - 170, "Non-Invasive Prenatal Screening (NIPS)")
-                else:
-                    canvas.drawCentredString(self.PAGE_WIDTH / 2.0, self.PAGE_HEIGHT - 80, "Non-Invasive Prenatal Screening (NIPS)")
+            # Title is now handled in the story flow for better layout control
             
             # Footer text with address
             if with_logo:
@@ -243,9 +235,19 @@ class NIPTReportTemplate:
 
         # Page 1
         if with_logo:
-            story.append(Spacer(1, 100)) # Offset from header with space for new title position
-        else:
-            story.append(Spacer(1, 20)) # Offset from header
+            story.append(Spacer(1, 80)) 
+        
+        # Centered Title (Now in story to ensure visibility and prevent overlap)
+        title_style = ParagraphStyle(
+            name='Title',
+            fontName=self._get_font('GillSansMT-Bold', 'Helvetica-Bold'),
+            fontSize=18,
+            textColor=colors.HexColor(self.COLORS['blue_header']),
+            alignment=TA_CENTER,
+            spaceAfter=20
+        )
+        story.append(Paragraph("Non-Invasive Prenatal Screening (NIPS)", title_style))
+        story.append(Spacer(1, 5))
         
         # Patient Info Grid MUST be first on Page 1
         story.append(self._create_patient_grid(data))
@@ -422,8 +424,12 @@ class NIPTReportTemplate:
         return KeepTogether([header_table])
 
     def _create_patient_grid(self, data):
-        pg_style = ParagraphStyle('PG', fontName=self._get_font('SegoeUI-Bold', 'Helvetica-Bold'), fontSize=10, leading=14)
-        def P(lbl, val): return Paragraph(f"<b>{lbl} : {val}</b>", pg_style)
+        main_bold = self._get_font('SegoeUI-Bold', 'Helvetica-Bold')
+        lbl_style = ParagraphStyle('Lbl', fontName=main_bold, fontSize=10, leading=14)
+        val_style = ParagraphStyle('Val', fontName=main_bold, fontSize=10, leading=14)
+        
+        def L(txt): return Paragraph(f"<b>{txt}</b>", lbl_style)
+        def V(txt): return Paragraph(f"<b>: {txt}</b>", val_style)
         
         def fmt_date(d):
             if not d: return ""
@@ -434,24 +440,31 @@ class NIPTReportTemplate:
             if m: return f"{int(m.group(1)):02d}/{int(m.group(2)):02d}/{m.group(3)}"
             return d
             
+        # 4-Column Table for precise colon alignment
         table_data = [
-            [P("Patient name", data.get('name','')), P("Specimen", data.get('specimen','Peripheral blood').title())],
-            [P("Date of Birth", fmt_date(data.get('dob',''))), P("PIN", data.get('pin',''))],
-            [P("Gestational Age", data.get('ga','')), P("Sample Number", data.get('sample_id',''))],
-            [P("Pregnancy Type;\nStatus", f"{data.get('preg_type','').title()}; {data.get('preg_status','').title()}".strip('; ')), P("Sample collection date", fmt_date(data.get('collection_date','')))],
-            [P("Referring Clinician", data.get('clinician','')), P("Sample received date", fmt_date(data.get('received_date','')))],
-            [P("Hospital/Clinic", data.get('hospital','')), P("Report date", fmt_date(data.get('report_date', datetime.now().strftime('%d/%m/%Y'))))]
+            [L("Patient name"), V(data.get('name','')), L("Specimen"), V(data.get('specimen','Peripheral blood').title())],
+            [L("Date of Birth"), V(fmt_date(data.get('dob',''))), L("PIN"), V(data.get('pin',''))],
+            [L("Gestational Age"), V(data.get('ga','')), L("Sample Number"), V(data.get('sample_id',''))],
+            [L("Pregnancy Type; status"), V(f"{data.get('preg_type','').title()}; {data.get('preg_status','').title()}".strip('; ')), L("Sample collection date"), V(fmt_date(data.get('collection_date','')))],
+            [L("Referring Clinician"), V(data.get('clinician','')), L("Sample received date"), V(fmt_date(data.get('received_date','')))],
+            [L("Hospital/Clinic"), V(data.get('hospital','')), L("Report date"), V(fmt_date(data.get('report_date', datetime.now().strftime('%d/%m/%Y'))))]
         ]
-        t = Table(table_data, colWidths=[self.CONTENT_WIDTH*0.5]*2)
+        
+        # Column widths: Label (~25%), Value (~25%), Label (~25%), Value (~25%)
+        # Adjusted slightly to allow long labels like "Pregnancy Type; status"
+        w = self.CONTENT_WIDTH
+        col_widths = [w*0.22, w*0.28, w*0.23, w*0.27]
+        
+        t = Table(table_data, colWidths=col_widths)
         t.setStyle(TableStyle([
-            ('FONTNAME', (0,0), (-1,-1), self._get_font('SegoeUI-Bold', 'Helvetica-Bold')),
+            ('FONTNAME', (0,0), (-1,-1), main_bold),
             ('FONTSIZE', (0,0), (-1,-1), 10),
             ('ALIGN', (0,0), (-1,-1), 'LEFT'),
             ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
-            ('BOTTOMPADDING', (0,0), (-1,-1), 6),
+            ('BOTTOMPADDING', (0,0), (-1,-1), 4),
             ('TOPPADDING', (0,0), (-1,-1), 4),
-            ('LEFTPADDING', (0,0), (-1,-1), 10),
-            ('RIGHTPADDING', (0,0), (-1,-1), 10),
+            ('LEFTPADDING', (0,0), (-1,-1), 5),
+            ('RIGHTPADDING', (0,0), (-1,-1), 5),
             ('BACKGROUND', (0,0), (-1,-1), colors.HexColor(self.COLORS['patient_info_bg'])),
         ]))
         return t

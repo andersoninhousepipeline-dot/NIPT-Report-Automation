@@ -349,26 +349,40 @@ class NIPTDocxGenerator:
             if m: return f"{int(m.group(1)):02d}-{int(m.group(2)):02d}-{m.group(3)}"
             return d
             
-        table = self.doc.add_table(rows=6, cols=2)
+        table = self.doc.add_table(rows=6, cols=4)
+        table.autofit = False
+        # Set column widths roughly to 22%, 28%, 23%, 27% as in PDF
+        table.columns[0].width = Inches(1.4)
+        table.columns[1].width = Inches(1.8)
+        table.columns[2].width = Inches(1.5)
+        table.columns[3].width = Inches(1.8)
+
         mapping = [
-            ("Patient name        : ", data.get('name',''), "Specimen                  : ", data.get('specimen','Peripheral blood').title()),
-            ("Date of Birth       : ", fmt_date(data.get('dob','')), "PIN                       : ", data.get('pin','')),
-            ("Gestational Age     : ", data.get('ga',''), "Sample Number             : ", data.get('sample_id','')),
-            ("Pregnancy Type;\nStatus              : ", f"{data.get('preg_type','').title()}; {data.get('preg_status','').title()}".strip('; '), "Sample collection date  : ", fmt_date(data.get('collection_date',''))),
-            ("Referring Clinician : ", data.get('clinician',''), "Sample received date  : ", fmt_date(data.get('received_date',''))),
-            ("Hospital/Clinic     : ", data.get('hospital',''), "Report date               : ", fmt_date(data.get('report_date', datetime.now().strftime('%d-%m-%Y'))))
+            ("Patient name", data.get('name',''), "Specimen", data.get('specimen','Peripheral blood').title()),
+            ("Date of Birth", fmt_date(data.get('dob','')), "PIN", data.get('pin','')),
+            ("Gestational Age", data.get('ga',''), "Sample Number", data.get('sample_id','')),
+            ("Pregnancy Type; status", f"{data.get('preg_type','').title()}; {data.get('preg_status','').title()}".strip('; '), "Sample collection date", fmt_date(data.get('collection_date',''))),
+            ("Referring Clinician", data.get('clinician',''), "Sample received date", fmt_date(data.get('received_date',''))),
+            ("Hospital/Clinic", data.get('hospital',''), "Report date", fmt_date(data.get('report_date', datetime.now().strftime('%d-%m-%Y'))))
         ]
         
-        for i, (l1, l2, r1, r2) in enumerate(mapping):
-            p1 = table.rows[i].cells[0].paragraphs[0]
-            p1.add_run(l1).bold = True
-            p1.add_run(l2).bold = True
-            p2 = table.rows[i].cells[1].paragraphs[0]
-            p2.add_run(r1).bold = True
-            p2.add_run(r2).bold = True
-            self._set_cell_background(table.rows[i].cells[0], self.COLORS['patient_info_bg'])
-            self._set_cell_background(table.rows[i].cells[1], self.COLORS['patient_info_bg'])
+        for i, (l1, v1, l2, v2) in enumerate(mapping):
+            # Left Label
+            p0 = table.rows[i].cells[0].paragraphs[0]
+            p0.add_run(l1).bold = True
+            # Left Value
+            p1 = table.rows[i].cells[1].paragraphs[0]
+            p1.add_run(f": {v1}").bold = True
+            # Right Label
+            p2 = table.rows[i].cells[2].paragraphs[0]
+            p2.add_run(l2).bold = True
+            # Right Value
+            p3 = table.rows[i].cells[3].paragraphs[0]
+            p3.add_run(f": {v2}").bold = True
             
+            for c in range(4):
+                self._set_cell_background(table.rows[i].cells[c], self.COLORS['patient_info_bg'])
+        
         for row in table.rows:
             for cell in row.cells:
                 for p in cell.paragraphs:
