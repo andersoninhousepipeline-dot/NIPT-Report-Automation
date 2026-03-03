@@ -161,6 +161,7 @@ class NIPTDocxGenerator:
         res_table.columns[0].width = Inches(3.25)
         res_table.columns[1].width = Inches(3.25)
         r0 = res_table.rows[0]
+        r0.height = Inches(0.4) # Increased for spaciousness
         self._set_cell_background(r0.cells[0], self.COLORS['patient_info_bg'])
         self._set_cell_background(r0.cells[1], self.COLORS['patient_info_bg'])
         p1 = r0.cells[0].paragraphs[0]
@@ -413,6 +414,7 @@ class NIPTDocxGenerator:
         ]
         for i, (name, val, thresh) in enumerate(targets, 1):
             row = table.rows[i]
+            row.height = Inches(0.35) # Increased for spaciousness
             row.cells[0].text = name
             row.cells[0].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
             row.cells[0].vertical_alignment = WD_CELL_VERTICAL_ALIGNMENT.CENTER
