@@ -235,7 +235,7 @@ class NIPTReportTemplate:
 
         # Page 1
         if with_logo:
-            story.append(Spacer(1, 80)) 
+            story.append(Spacer(1, 65)) 
         
         # Centered Title (Now in story to ensure visibility and prevent overlap)
         title_style = ParagraphStyle(
@@ -244,14 +244,14 @@ class NIPTReportTemplate:
             fontSize=18,
             textColor=colors.HexColor(self.COLORS['blue_header']),
             alignment=TA_CENTER,
-            spaceAfter=20
+            spaceAfter=15
         )
         story.append(Paragraph("Non-Invasive Prenatal Screening (NIPS)", title_style))
-        story.append(Spacer(1, 5))
+        story.append(Spacer(1, 2))
         
         # Patient Info Grid MUST be first on Page 1
         story.append(self._create_patient_grid(data))
-        story.append(Spacer(1, 5))
+        story.append(Spacer(1, 3))
         
         # PNDT disclaimer
         pndt_style = ParagraphStyle(name='PNDT', parent=self.styles['Value'], alignment=TA_CENTER)
@@ -267,14 +267,14 @@ class NIPTReportTemplate:
         story.append(Spacer(1, 8))
         
         story.append(self._create_section_header("Test Indication"))
-        story.append(Spacer(1, 3))
+        story.append(Spacer(1, 2))
         story.append(Paragraph(data.get('indication', 'To screen for chromosomal aneuploidies'), self.styles['Value']))
-        story.append(Spacer(1, 5))
+        story.append(Spacer(1, 4))
         
         story.append(self._create_section_header("Test Performed"))
-        story.append(Spacer(1, 3))
+        story.append(Spacer(1, 2))
         story.append(Paragraph("NIPS for 23 pairs of chromosomes (including sex chromosomal aneuploidies)", self.styles['Value']))
-        story.append(Spacer(1, 5))
+        story.append(Spacer(1, 4))
         
         ff = z_scores.get('fetal_fraction', 0)
         overall_risk = "Low risk"
@@ -291,11 +291,11 @@ class NIPTReportTemplate:
         res_t.setStyle(TableStyle([
             ('BACKGROUND', (0,0), (-1,-1), colors.HexColor(self.COLORS['patient_info_bg'])),
             ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
-            ('TOPPADDING', (0,0), (-1,-1), 8),
-            ('BOTTOMPADDING', (0,0), (-1,-1), 8),
+            ('TOPPADDING', (0,0), (-1,-1), 6),
+            ('BOTTOMPADDING', (0,0), (-1,-1), 6),
         ]))
         story.append(res_t)
-        story.append(Spacer(1, 5))
+        story.append(Spacer(1, 4))
         
         story.append(self._create_summary_table(z_scores))
         
@@ -419,7 +419,7 @@ class NIPTReportTemplate:
             ("LEFTPADDING", (0, 0), (-1, -1), 0),
             ("RIGHTPADDING", (0, 0), (-1, -1), 0),
             ("TOPPADDING", (0, 0), (-1, -1), 0),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 16),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
         ]))
         return KeepTogether([header_table])
 
@@ -491,8 +491,8 @@ class NIPTReportTemplate:
         t = Table(table_data, colWidths=[self.CONTENT_WIDTH*0.5, self.CONTENT_WIDTH*0.5])
         t.setStyle(TableStyle([
             ('BACKGROUND', (0,0), (-1,0), colors.HexColor(self.COLORS['results_header_bg'])),
-            ('BOTTOMPADDING', (0,0), (-1,-1), 14),
-            ('TOPPADDING', (0,0), (-1,-1), 14),
+            ('BOTTOMPADDING', (0,0), (-1,-1), 8),
+            ('TOPPADDING', (0,0), (-1,-1), 8),
             ('ALIGN', (0,0), (-1,-1), 'CENTER'),
             ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
             ('INNERGRID', (0,0), (-1,-1), 0.5, colors.white),
