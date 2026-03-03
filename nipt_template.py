@@ -235,7 +235,7 @@ class NIPTReportTemplate:
 
         # Page 1
         if with_logo:
-            story.append(Spacer(1, 85)) 
+            story.append(Spacer(1, 65)) 
         
         # Centered Title (Now in story to ensure visibility and prevent overlap)
         title_style = ParagraphStyle(
@@ -415,11 +415,11 @@ class NIPTReportTemplate:
         header = Paragraph(f"{text}", self.styles['Section_Header'])
         header_table = Table([[header]], colWidths=[self.CONTENT_WIDTH])
         header_table.setStyle(TableStyle([
-            ("LINEBELOW", (0, 0), (-1, -1), 0.5, colors.HexColor(self.COLORS['blue_header'])),
+            ("LINEBELOW", (0, 0), (-1, -1), 1.5, colors.HexColor(self.COLORS['blue_header'])),
             ("LEFTPADDING", (0, 0), (-1, -1), 0),
             ("RIGHTPADDING", (0, 0), (-1, -1), 0),
             ("TOPPADDING", (0, 0), (-1, -1), 0),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 15),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 20),
         ]))
         return KeepTogether([header_table])
 
