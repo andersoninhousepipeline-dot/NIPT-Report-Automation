@@ -414,7 +414,7 @@ class NIPTDocxGenerator:
         ]
         for i, (name, val, thresh) in enumerate(targets, 1):
             row = table.rows[i]
-            row.height = Inches(0.35) # Increased for spaciousness
+            row.height = Inches(0.30) # Compact for Page 1 fit
             row.cells[0].text = name
             row.cells[0].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
             row.cells[0].vertical_alignment = WD_CELL_VERTICAL_ALIGNMENT.CENTER
