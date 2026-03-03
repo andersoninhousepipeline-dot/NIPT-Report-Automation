@@ -235,7 +235,7 @@ class NIPTReportTemplate:
 
         # Page 1
         if with_logo:
-            story.append(Spacer(1, 65)) 
+            story.append(Spacer(1, 40)) 
         
         # Centered Title (Now in story to ensure visibility and prevent overlap)
         title_style = ParagraphStyle(
