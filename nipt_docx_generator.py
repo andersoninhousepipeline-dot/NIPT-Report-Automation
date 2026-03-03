@@ -335,7 +335,7 @@ class NIPTDocxGenerator:
         bottom = OxmlElement('w:bottom')
         bottom.set(qn('w:val'), 'single')
         bottom.set(qn('w:sz'), '4')
-        bottom.set(qn('w:space'), '80')
+        bottom.set(qn('w:space'), '120')
         bottom.set(qn('w:color'), self.COLORS['blue_header'])
         pborder.append(bottom)
         h._p.get_or_add_pPr().append(pborder)
