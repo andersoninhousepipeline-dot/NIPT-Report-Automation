@@ -235,7 +235,7 @@ class NIPTReportTemplate:
 
         # Page 1
         if with_logo:
-            story.append(Spacer(1, 35)) 
+            story.append(Spacer(1, 30)) 
         
         # Centered Title (Now in story to ensure visibility and prevent overlap)
         title_style = ParagraphStyle(
@@ -260,11 +260,11 @@ class NIPTReportTemplate:
         pndt_t.setStyle(TableStyle([
             ('BACKGROUND', (0,0), (-1,-1), colors.HexColor(self.COLORS['grey_bg'])),
             ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
-            ('TOPPADDING', (0,0), (-1,-1), 5),
-            ('BOTTOMPADDING', (0,0), (-1,-1), 5),
+            ('TOPPADDING', (0,0), (-1,-1), 3),
+            ('BOTTOMPADDING', (0,0), (-1,-1), 3),
         ]))
         story.append(pndt_t)
-        story.append(Spacer(1, 8))
+        story.append(Spacer(1, 5))
         
         story.append(self._create_section_header("Test Indication"))
         story.append(Spacer(1, 2))
@@ -291,8 +291,8 @@ class NIPTReportTemplate:
         res_t.setStyle(TableStyle([
             ('BACKGROUND', (0,0), (-1,-1), colors.HexColor(self.COLORS['patient_info_bg'])),
             ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
-            ('TOPPADDING', (0,0), (-1,-1), 10),
-            ('BOTTOMPADDING', (0,0), (-1,-1), 10),
+            ('TOPPADDING', (0,0), (-1,-1), 8),
+            ('BOTTOMPADDING', (0,0), (-1,-1), 8),
         ]))
         story.append(res_t)
         story.append(Spacer(1, 4))
@@ -419,7 +419,7 @@ class NIPTReportTemplate:
             ("LEFTPADDING", (0, 0), (-1, -1), 0),
             ("RIGHTPADDING", (0, 0), (-1, -1), 0),
             ("TOPPADDING", (0, 0), (-1, -1), 0),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 20),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 16),
         ]))
         return KeepTogether([header_table])
 
@@ -491,8 +491,8 @@ class NIPTReportTemplate:
         t = Table(table_data, colWidths=[self.CONTENT_WIDTH*0.5, self.CONTENT_WIDTH*0.5])
         t.setStyle(TableStyle([
             ('BACKGROUND', (0,0), (-1,0), colors.HexColor(self.COLORS['results_header_bg'])),
-            ('BOTTOMPADDING', (0,0), (-1,-1), 10),
-            ('TOPPADDING', (0,0), (-1,-1), 10),
+            ('BOTTOMPADDING', (0,0), (-1,-1), 8),
+            ('TOPPADDING', (0,0), (-1,-1), 8),
             ('ALIGN', (0,0), (-1,-1), 'CENTER'),
             ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
             ('INNERGRID', (0,0), (-1,-1), 0.5, colors.white),
