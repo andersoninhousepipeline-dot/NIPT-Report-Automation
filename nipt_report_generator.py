@@ -93,7 +93,8 @@ class BatchWorker(QThread):
                     "collection_date","received_date","preg_status",
                     "preg_type","clinician","hospital","indication","specimen"]}
 
-                base = f"Report_{name.replace(' ','_')}_{s_id}"
+                suffix = "with_logo" if self.branding else "without_logo"
+                base = f"Report_{name.replace(' ','_')}_{s_id}_{suffix}"
                 if self.do_pdf:
                     NIPTReportTemplate(os.path.join(self.out_dir, base+".pdf")).generate(
                         p_info, z, with_logo=self.branding)
@@ -755,14 +756,16 @@ class NIPTApp(QMainWindow):
         if not out:
             QMessageBox.warning(self, "No Output Folder", "Set an output folder first."); return
         self._save_settings()
-        base = f"Report_{p.get('name','').replace(' ','_')}_{p.get('sample_id','')}"
+        branding = self.cb_branding.isChecked()
+        suffix = "with_logo" if branding else "without_logo"
+        base = f"Report_{p.get('name','').replace(' ','_')}_{p.get('sample_id','')}_{suffix}"
         try:
             if self.cb_pdf.isChecked():
                 NIPTReportTemplate(os.path.join(out, base+".pdf")).generate(
-                    p, z, with_logo=self.cb_branding.isChecked())
+                    p, z, with_logo=branding)
             if self.cb_docx.isChecked():
                 NIPTDocxGenerator(os.path.join(out, base+".docx")).generate(
-                    p, z, with_logo=self.cb_branding.isChecked())
+                    p, z, with_logo=branding)
             QMessageBox.information(self, "Saved", f"Exported: {base}")
         except Exception as e:
             QMessageBox.critical(self, "Export Error", str(e))
@@ -1047,13 +1050,15 @@ class NIPTApp(QMainWindow):
                 "name","pin","dob","ga","sample_id","collection_date",
                 "received_date","preg_status","preg_type","clinician",
                 "hospital","indication","specimen"]}
-            base = f"Report_{p_info['name'].replace(' ','_')}_{p_info['sample_id']}"
+            branding = self.cb_branding.isChecked()
+            suffix = "with_logo" if branding else "without_logo"
+            base = f"Report_{p_info['name'].replace(' ','_')}_{p_info['sample_id']}_{suffix}"
             if self.cb_pdf.isChecked():
                 NIPTReportTemplate(os.path.join(out, base+".pdf")).generate(
-                    p_info, z, with_logo=self.cb_branding.isChecked())
+                    p_info, z, with_logo=branding)
             if self.cb_docx.isChecked():
                 NIPTDocxGenerator(os.path.join(out, base+".docx")).generate(
-                    p_info, z, with_logo=self.cb_branding.isChecked())
+                    p_info, z, with_logo=branding)
             QMessageBox.information(self, "Done", f"Saved {base}")
         except Exception as e: QMessageBox.critical(self, "Error", str(e))
 
