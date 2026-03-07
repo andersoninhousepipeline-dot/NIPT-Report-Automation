@@ -89,7 +89,7 @@ class BatchWorker(QThread):
                 z["fetal_fraction"] = float(p.get("ff", p.get("fetal_fraction", 0)) or 0)
 
                 p_info = {k: str(p.get(k, "")) for k in [
-                    "name","pin","dob","ga","sample_id",
+                    "name","pin","dob","dob_type","ga","sample_id",
                     "collection_date","received_date","preg_status",
                     "preg_type","clinician","hospital","indication","specimen"]}
 
@@ -313,10 +313,19 @@ class NIPTApp(QMainWindow):
         p_form = QFormLayout(p_grp)
         p_form.setLabelAlignment(Qt.AlignmentFlag.AlignRight)
         self.m = {}
+        # Extract 'dob' and 'dob_type' manually to set up combo box
+        self.m_dob_type = QComboBox()
+        self.m_dob_type.addItems(["Date of Birth", "Age"])
+        self.m_dob_type.setStyleSheet("QComboBox { border: none; font-weight: bold; background: transparent; }")
+        self.m_dob_type.currentTextChanged.connect(self._schedule_preview)
+        
+        self.m["dob"] = QLineEdit()
+        self.m["dob"].textChanged.connect(self._schedule_preview)
+        p_form.addRow(self.m_dob_type, self.m["dob"])
+
         for key, label in [
             ("name",            "Patient Name"),
             ("pin",             "PIN / MRN"),
-            ("dob",             "Date of Birth"),
             ("ga",              "Gestational Age"),
             ("sample_id",       "Sample ID"),
             ("collection_date", "Collection Date"),
@@ -709,6 +718,7 @@ class NIPTApp(QMainWindow):
     def _collect_manual(self):
         p = {k: v.text() for k, v in self.m.items()
              if k != "ff" and not k.startswith("chr")}
+        p["dob_type"] = self.m_dob_type.currentText()
         z = {}
         for i in range(1, 23):
             try:   z[f"chr{i}"] = float(self.m[f"chr{i}"].text() or 0)
@@ -790,6 +800,9 @@ class NIPTApp(QMainWindow):
             p = d.get("patient_details",{}); z = d.get("z_scores",{})
             for k, v in p.items():
                 if k in self.m: self.m[k].setText(str(v))
+            if "dob_type" in p:
+                idx = self.m_dob_type.findText(str(p["dob_type"]))
+                if idx >= 0: self.m_dob_type.setCurrentIndex(idx)
             if "fetal_fraction" in z: self.m["ff"].setText(str(z["fetal_fraction"]))
             for k, v in z.items():
                 if k in self.m: self.m[k].setText(str(v))
@@ -799,6 +812,7 @@ class NIPTApp(QMainWindow):
     def _clear_form(self):
         for k, w in self.m.items():
             w.setText("0.00" if k.startswith("chr") or k == "ff" else "")
+        self.m_dob_type.setCurrentIndex(0)
 
     # ─────────────────────────────────────────────────────────────────────────
     # Batch: load Excel
@@ -906,10 +920,27 @@ class NIPTApp(QMainWindow):
         p_grp  = QGroupBox(f"Patient Information — {p.get('name','')}")
         p_form = QFormLayout(p_grp)
         p_form.setLabelAlignment(Qt.AlignmentFlag.AlignRight)
+        # Explicitly handle dob_type and dob
+        dob_layout = QHBoxLayout()
+        self.be_dob_type = QComboBox()
+        self.be_dob_type.addItems(["Date of Birth", "Age"])
+        self.be_dob_type.setStyleSheet("QComboBox { border: none; font-weight: bold; background: transparent; }")
+        
+        # Set current value if present
+        current_type = p.get("dob_type", "Date of Birth")
+        idx = self.be_dob_type.findText(current_type)
+        if idx >= 0: self.be_dob_type.setCurrentIndex(idx)
+        self.be_dob_type.currentTextChanged.connect(self._schedule_batch_preview)
+        
+        dob_ed = QLineEdit(p.get("dob", ""))
+        dob_ed.textChanged.connect(self._schedule_batch_preview)
+        self.be["dob"] = dob_ed
+        
+        p_form.addRow(self.be_dob_type, dob_ed)
+
         for key, label in [
             ("name",            "Patient Name"),
             ("pin",             "PIN / MRN"),
-            ("dob",             "Date of Birth"),
             ("ga",              "Gestational Age"),
             ("sample_id",       "Sample ID"),
             ("collection_date", "Collection Date"),
@@ -981,6 +1012,8 @@ class NIPTApp(QMainWindow):
         if not self.be: return
         for key, ed in self.be.items():
             self.batch_patients[idx][key] = ed.text()
+        if hasattr(self, 'be_dob_type'):
+            self.batch_patients[idx]["dob_type"] = self.be_dob_type.currentText()
 
     def _schedule_batch_preview(self):
         self._batch_preview_timer.start()
@@ -989,6 +1022,10 @@ class NIPTApp(QMainWindow):
         if not self.be: return None, None
         p = {k: v.text() for k, v in self.be.items()
              if k != "ff" and not k.startswith("chr")}
+        if hasattr(self, 'be_dob_type'):
+            p["dob_type"] = self.be_dob_type.currentText()
+        else:
+            p["dob_type"] = "Date of Birth"
         z = {}
         for i in range(1, 23):
             key = f"chr{i}"
@@ -1047,7 +1084,7 @@ class NIPTApp(QMainWindow):
             z["chrX"]           = float(p_d.get("chrX",0) or 0)
             z["fetal_fraction"] = float(p_d.get("ff",0)   or 0)
             p_info = {k: p_d.get(k,"") for k in [
-                "name","pin","dob","ga","sample_id","collection_date",
+                "name","pin","dob","dob_type","ga","sample_id","collection_date",
                 "received_date","preg_status","preg_type","clinician",
                 "hospital","indication","specimen"]}
             branding = self.cb_branding.isChecked()

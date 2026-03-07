@@ -441,9 +441,10 @@ class NIPTReportTemplate:
             return d
             
         # 4-Column Table for precise colon alignment
+        dob_label = data.get('dob_type', 'Date of Birth')
         table_data = [
             [L("Patient name"), V(data.get('name','')), L("Specimen"), V(data.get('specimen','Peripheral blood').title())],
-            [L("Date of Birth"), V(fmt_date(data.get('dob',''))), L("PIN"), V(data.get('pin',''))],
+            [L(dob_label), V(fmt_date(data.get('dob',''))), L("PIN"), V(data.get('pin',''))],
             [L("Gestational Age"), V(data.get('ga','')), L("Sample Number"), V(data.get('sample_id',''))],
             [L("Pregnancy Type; status"), V(f"{data.get('preg_type','').title()}; {data.get('preg_status','').title()}".strip('; ')), L("Sample collection date"), V(fmt_date(data.get('collection_date','')))],
             [L("Referring Clinician"), V(data.get('clinician','')), L("Sample received date"), V(fmt_date(data.get('received_date','')))],

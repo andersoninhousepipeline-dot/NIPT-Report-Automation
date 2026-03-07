@@ -358,9 +358,10 @@ class NIPTDocxGenerator:
         table.columns[2].width = Inches(1.5)
         table.columns[3].width = Inches(1.8)
 
+        dob_label = data.get('dob_type', 'Date of Birth')
         mapping = [
             ("Patient name", data.get('name',''), "Specimen", data.get('specimen','Peripheral blood').title()),
-            ("Date of Birth", fmt_date(data.get('dob','')), "PIN", data.get('pin','')),
+            (dob_label, fmt_date(data.get('dob','')), "PIN", data.get('pin','')),
             ("Gestational Age", data.get('ga',''), "Sample Number", data.get('sample_id','')),
             ("Pregnancy Type; status", f"{data.get('preg_type','').title()}; {data.get('preg_status','').title()}".strip('; '), "Sample collection date", fmt_date(data.get('collection_date',''))),
             ("Referring Clinician", data.get('clinician',''), "Sample received date", fmt_date(data.get('received_date',''))),
