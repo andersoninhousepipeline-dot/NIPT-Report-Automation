@@ -12,6 +12,7 @@ import os
 import json
 import math
 import subprocess
+import re
 from datetime import datetime
 
 from PyQt6.QtWidgets import (
@@ -38,6 +39,31 @@ except ImportError:
 # =============================================================================
 # Workers
 # =============================================================================
+
+TITLE_CASE_FIELDS = {"name", "clinician", "hospital"}
+
+
+def title_case_words(value):
+    """Capitalize each word while normalizing extra whitespace."""
+    return " ".join(
+        word[:1].upper() + word[1:].lower()
+        for word in str(value or "").strip().split()
+    )
+
+
+def normalize_title_case_fields(patient_info):
+    for key in TITLE_CASE_FIELDS:
+        if key in patient_info:
+            patient_info[key] = title_case_words(patient_info.get(key, ""))
+    return patient_info
+
+
+def report_base_filename(patient_name):
+    name = title_case_words(patient_name) or "Patient"
+    name = re.sub(r'[<>:"/\\|?*]+', "", name)
+    name = re.sub(r"\s+", " ", name).strip().rstrip(".")
+    return f"{name or 'Patient'} NIPT Report"
+
 
 class PreviewWorker(QThread):
     finished = pyqtSignal(str)
@@ -81,21 +107,19 @@ class BatchWorker(QThread):
         total = len(self.patients)
         count = 0
         for i, p in enumerate(self.patients):
-            name = p.get("name", p.get("Patient Name", f"Patient_{i}"))
-            s_id = p.get("sample_id", p.get("Sample ID", f"S{i}"))
+            name = title_case_words(p.get("name", p.get("Patient Name", f"Patient {i + 1}")))
             self.progress.emit(int(i / total * 100), f"Processing {name} …")
             try:
                 z = {f"chr{j}": float(p.get(f"chr{j}", 0) or 0) for j in range(1, 23)}
                 z["chrX"]           = float(p.get("chrX", 0) or 0)
                 z["fetal_fraction"] = float(p.get("ff", p.get("fetal_fraction", 0)) or 0)
 
-                p_info = {k: str(p.get(k, "")) for k in [
+                p_info = normalize_title_case_fields({k: str(p.get(k, "")) for k in [
                     "name","pin","dob","dob_type","ga","sample_id",
                     "collection_date","received_date","preg_status",
-                    "preg_type","clinician","hospital","indication","specimen"]}
+                    "preg_type","clinician","hospital","indication","specimen"]})
 
-                suffix = "with_logo" if self.branding else "without_logo"
-                base = f"Report_{name.replace(' ','_')}_{s_id}_{suffix}"
+                base = report_base_filename(p_info.get("name", name))
                 if self.do_pdf:
                     NIPTReportTemplate(os.path.join(self.out_dir, base+".pdf")).generate(
                         p_info, z, with_logo=self.branding)
@@ -720,6 +744,7 @@ class NIPTApp(QMainWindow):
         p = {k: v.text() for k, v in self.m.items()
              if k != "ff" and not k.startswith("chr")}
         p["dob_type"] = self.m_dob_type.currentText()
+        normalize_title_case_fields(p)
         z = {}
         for i in range(1, 23):
             try:   z[f"chr{i}"] = float(self.m[f"chr{i}"].text() or 0)
@@ -768,8 +793,7 @@ class NIPTApp(QMainWindow):
             QMessageBox.warning(self, "No Output Folder", "Set an output folder first."); return
         self._save_settings()
         branding = self.cb_branding.isChecked()
-        suffix = "with_logo" if branding else "without_logo"
-        base = f"Report_{p.get('name','').replace(' ','_')}_{p.get('sample_id','')}_{suffix}"
+        base = report_base_filename(p.get("name", ""))
         try:
             if self.cb_pdf.isChecked():
                 NIPTReportTemplate(os.path.join(out, base+".pdf")).generate(
@@ -799,6 +823,7 @@ class NIPTApp(QMainWindow):
         try:
             with open(path) as f: d = json.load(f)
             p = d.get("patient_details",{}); z = d.get("z_scores",{})
+            normalize_title_case_fields(p)
             for k, v in p.items():
                 if k in self.m: self.m[k].setText(str(v))
             if "dob_type" in p:
@@ -859,7 +884,7 @@ class NIPTApp(QMainWindow):
                 ff_pct = ff * 100 if ff < 1 else ff
 
                 bdp = {
-                    "name":            str(p.get("Patient Name",         p.get("Sample Name",""))),
+                    "name":            title_case_words(p.get("Patient Name",         p.get("Sample Name",""))),
                     "pin":             str(p.get("PIN",                   p.get("Sample Name",""))),
                     "dob":             str(p.get("Date of birth/Age",     p.get("Age",""))).replace(" 00:00:00","").split(" /")[0],
                     "ga":              str(p.get("Gestational Age",       "")),
@@ -868,8 +893,8 @@ class NIPTApp(QMainWindow):
                     "received_date":   str(p.get("Received date",         p.get("Rec Date",""))).replace(" 00:00:00",""),
                     "preg_status":     str(p.get("Pregnancy status",      p.get("Status",""))),
                     "preg_type":       str(p.get("Pregnancy type",        "")),
-                    "clinician":       str(p.get("Referring Clinician",   p.get("Ref Doctor",""))),
-                    "hospital":        str(p.get("Hospital",              "")),
+                    "clinician":       title_case_words(p.get("Referring Clinician",   p.get("Ref Doctor",""))),
+                    "hospital":        title_case_words(p.get("Hospital",              "")),
                     "indication":      str(p.get("Indication",            "")),
                     "specimen":        str(p.get("Specimen",              "")),
                     "ff":              str(ff_pct),
@@ -1028,6 +1053,7 @@ class NIPTApp(QMainWindow):
             self.batch_patients[idx][key] = ed.text()
         if hasattr(self, 'be_dob_type'):
             self.batch_patients[idx]["dob_type"] = self.be_dob_type.currentText()
+        normalize_title_case_fields(self.batch_patients[idx])
 
     def _schedule_batch_preview(self):
         self._batch_preview_timer.start()
@@ -1040,6 +1066,7 @@ class NIPTApp(QMainWindow):
             p["dob_type"] = self.be_dob_type.currentText()
         else:
             p["dob_type"] = "Date of Birth"
+        normalize_title_case_fields(p)
         z = {}
         for i in range(1, 23):
             key = f"chr{i}"
@@ -1097,13 +1124,12 @@ class NIPTApp(QMainWindow):
             z = {f"chr{i}": float(p_d.get(f"chr{i}",0) or 0) for i in range(1,23)}
             z["chrX"]           = float(p_d.get("chrX",0) or 0)
             z["fetal_fraction"] = float(p_d.get("ff",0)   or 0)
-            p_info = {k: p_d.get(k,"") for k in [
+            p_info = normalize_title_case_fields({k: p_d.get(k,"") for k in [
                 "name","pin","dob","dob_type","ga","sample_id","collection_date",
                 "received_date","preg_status","preg_type","clinician",
-                "hospital","indication","specimen"]}
+                "hospital","indication","specimen"]})
             branding = self.cb_branding.isChecked()
-            suffix = "with_logo" if branding else "without_logo"
-            base = f"Report_{p_info['name'].replace(' ','_')}_{p_info['sample_id']}_{suffix}"
+            base = report_base_filename(p_info.get("name", ""))
             if self.cb_pdf.isChecked():
                 NIPTReportTemplate(os.path.join(out, base+".pdf")).generate(
                     p_info, z, with_logo=branding)
@@ -1127,6 +1153,8 @@ class NIPTApp(QMainWindow):
             self, "Load Bulk Draft", "", "JSON (*.json)")
         if not path: return
         with open(path) as f: self.batch_patients = json.load(f)
+        for patient in self.batch_patients:
+            normalize_title_case_fields(patient)
         self._rebuild_batch_list()
 
     def _run_batch(self):
