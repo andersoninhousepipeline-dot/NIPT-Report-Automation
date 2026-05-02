@@ -63,11 +63,12 @@ def normalize_title_case_fields(patient_info):
     return patient_info
 
 
-def report_base_filename(patient_name):
+def report_base_filename(patient_name, with_logo):
     name = title_case_words(patient_name) or "Patient"
     name = re.sub(r'[<>:"/\\|?*]+', "", name)
-    name = re.sub(r"\s+", " ", name).strip().rstrip(".")
-    return f"{name or 'Patient'} NIPT Report"
+    name = re.sub(r"\s+", "_", name).strip("_.")
+    suffix = "with_logo" if with_logo else "without_logo"
+    return f"{name or 'Patient'}_NIPT_Report_{suffix}"
 
 
 class PreviewWorker(QThread):
@@ -124,7 +125,7 @@ class BatchWorker(QThread):
                     "collection_date","received_date","preg_status",
                     "preg_type","clinician","hospital","indication","specimen"]})
 
-                base = report_base_filename(p_info.get("name", name))
+                base = report_base_filename(p_info.get("name", name), self.branding)
                 if self.do_pdf:
                     NIPTReportTemplate(os.path.join(self.out_dir, base+".pdf")).generate(
                         p_info, z, with_logo=self.branding)
@@ -798,7 +799,7 @@ class NIPTApp(QMainWindow):
             QMessageBox.warning(self, "No Output Folder", "Set an output folder first."); return
         self._save_settings()
         branding = self.cb_branding.isChecked()
-        base = report_base_filename(p.get("name", ""))
+        base = report_base_filename(p.get("name", ""), branding)
         try:
             if self.cb_pdf.isChecked():
                 NIPTReportTemplate(os.path.join(out, base+".pdf")).generate(
@@ -1134,7 +1135,7 @@ class NIPTApp(QMainWindow):
                 "received_date","preg_status","preg_type","clinician",
                 "hospital","indication","specimen"]})
             branding = self.cb_branding.isChecked()
-            base = report_base_filename(p_info.get("name", ""))
+            base = report_base_filename(p_info.get("name", ""), branding)
             if self.cb_pdf.isChecked():
                 NIPTReportTemplate(os.path.join(out, base+".pdf")).generate(
                     p_info, z, with_logo=branding)
