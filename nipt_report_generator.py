@@ -10,6 +10,7 @@ UI mirrors PGT-A generator exactly:
 import sys
 import os
 import json
+import math
 import subprocess
 from datetime import datetime
 
@@ -833,12 +834,19 @@ class NIPTApp(QMainWindow):
             df    = pd.read_excel(xls, sname)
             df.columns = [str(c).strip() for c in df.columns]
 
+            # Filter: only process samples that passed QC
+            if "QC" in df.columns:
+                df = df[df["QC"].astype(str).str.strip().str.lower() == "pass"].reset_index(drop=True)
+
             if "Sheet2" in xls.sheet_names:
-                df_z = pd.read_excel(xls,"Sheet2")
+                df_z = pd.read_excel(xls, "Sheet2")
                 df_z.columns = [str(c).strip() for c in df_z.columns]
-                id1 = next((c for c in ["Sample ID","Sample Name"] if c in df.columns),   None)
-                id2 = next((c for c in ["Sample ID","Sample"]      if c in df_z.columns), None)
+                id1 = next((c for c in ["Sample ID", "Sample Name"] if c in df.columns),   None)
+                id2 = next((c for c in ["Sample ID", "Sample"]      if c in df_z.columns), None)
                 if id1 and id2:
+                    # Normalize both ID columns to str so mixed int/string IDs match correctly
+                    df[id1]   = df[id1].astype(str).str.strip()
+                    df_z[id2] = df_z[id2].astype(str).str.strip()
                     df = pd.merge(df, df_z, left_on=id1, right_on=id2, how="left")
 
             raw = df.to_dict("records")
@@ -867,10 +875,16 @@ class NIPTApp(QMainWindow):
                     "ff":              str(ff_pct),
                 }
                 for i in range(1, 23):
-                    try:   bdp[f"chr{i}"] = f"{float(p.get(f'chr{i}', 0) or 0):.2f}"
-                    except: bdp[f"chr{i}"] = "0.00"
-                try:   bdp["chrX"] = f"{float(p.get('chrX', 0) or 0):.2f}"
-                except: bdp["chrX"] = "0.00"
+                    try:
+                        val = float(p.get(f"chr{i}", 0) or 0)
+                        bdp[f"chr{i}"] = f"{math.trunc(val * 100) / 100:.2f}"
+                    except:
+                        bdp[f"chr{i}"] = "0.00"
+                try:
+                    val = float(p.get("chrX", 0) or 0)
+                    bdp["chrX"] = f"{math.trunc(val * 100) / 100:.2f}"
+                except:
+                    bdp["chrX"] = "0.00"
 
                 self.batch_patients.append(bdp)
 
