@@ -45,9 +45,14 @@ TITLE_CASE_FIELDS = {"name", "clinician", "hospital"}
 
 def title_case_words(value):
     """Capitalize each word while normalizing extra whitespace."""
-    return " ".join(
+    text = " ".join(
         word[:1].upper() + word[1:].lower()
         for word in str(value or "").strip().split()
+    )
+    return re.sub(
+        r"\b(Mr|Mrs|Ms|Dr)\.\s*([a-z])",
+        lambda match: f"{match.group(1)}. {match.group(2).upper()}",
+        text,
     )
 
 
