@@ -60,6 +60,7 @@ class NIPTDocxGenerator:
         section.bottom_margin = Pt(50)
         section.left_margin = Pt(50)
         section.right_margin = Pt(50)
+        section.footer_distance = Pt(10)  # page number sits at the bottom edge
         
         # Add Footer with Page Number
         footer = section.footer
@@ -85,7 +86,7 @@ class NIPTDocxGenerator:
         p._p.append(fldChar2)
         p._p.append(fldChar3)
         
-        run2 = p.add_run(" of 6\n\n\n")
+        run2 = p.add_run(" of 6\n")
         run2.font.name = 'Gill Sans MT'
         run2.font.size = Pt(11)
         
@@ -126,6 +127,12 @@ class NIPTDocxGenerator:
             run2.font.color.rgb = RGBColor.from_string(self.COLORS['blue_header'])
 
     def generate(self, data, z_scores, with_logo=True):
+        # Without logo: expand top/bottom margins by 20% of logo/footer area
+        if not with_logo:
+            section = self.doc.sections[0]
+            section.top_margin    = Pt(57)   # Pt(40) + 20% of ~83pt logo height
+            section.bottom_margin = Pt(63)   # Pt(50) + 20% of 66pt footer banner
+
         # Page 1
         if with_logo: self._add_logo()
         self._add_header_text(1)

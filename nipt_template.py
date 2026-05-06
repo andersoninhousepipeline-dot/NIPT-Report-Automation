@@ -202,8 +202,19 @@ class NIPTReportTemplate:
         ))
 
     def generate(self, data, z_scores, with_logo=True):
+        # Without logo: rebuild doc with extra top/bottom margins (20% of logo/footer area)
+        if not with_logo:
+            self.doc = SimpleDocTemplate(
+                self.output_path,
+                pagesize=letter,
+                leftMargin=self.MARGIN_LEFT,
+                rightMargin=self.MARGIN_RIGHT,
+                topMargin=self.MARGIN_TOP + 15,   # +20% of 75pt logo height
+                bottomMargin=self.MARGIN_BOTTOM + 13,  # +20% of 66pt footer banner
+            )
+
         story = []
-        
+
         # Header with Pagination and Title
         def header_footer(canvas, doc):
             canvas.saveState()
@@ -230,12 +241,14 @@ class NIPTReportTemplate:
             # Pagination in Footer
             canvas.setFont(self._get_font('GillSansMT', 'Helvetica'), 12)
             canvas.setFillColor(colors.black)
-            canvas.drawRightString(self.PAGE_WIDTH - self.MARGIN_RIGHT, 60, f"Page {doc.page} of 6")
+            canvas.drawRightString(self.PAGE_WIDTH - self.MARGIN_RIGHT, 15, f"Page {doc.page} of 6")
             canvas.restoreState()
 
         # Page 1
         if with_logo:
-            story.append(Spacer(1, 30)) 
+            story.append(Spacer(1, 30))
+        else:
+            story.append(Spacer(1, 15))  # 20% of 75pt logo height
         
         # Centered Title (Now in story to ensure visibility and prevent overlap)
         title_style = ParagraphStyle(
