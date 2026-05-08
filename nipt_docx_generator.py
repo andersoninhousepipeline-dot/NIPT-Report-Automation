@@ -60,7 +60,7 @@ class NIPTDocxGenerator:
         section.bottom_margin = Pt(50)
         section.left_margin = Pt(50)
         section.right_margin = Pt(50)
-        section.footer_distance = Pt(10)  # page number sits at the bottom edge
+        section.footer_distance = Pt(50)  # page number sits above the footer space
         
         # Add Footer with Page Number
         footer = section.footer

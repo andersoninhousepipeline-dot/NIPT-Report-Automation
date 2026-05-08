@@ -241,7 +241,7 @@ class NIPTReportTemplate:
             # Pagination in Footer
             canvas.setFont(self._get_font('GillSansMT', 'Helvetica'), 12)
             canvas.setFillColor(colors.black)
-            canvas.drawRightString(self.PAGE_WIDTH - self.MARGIN_RIGHT, 15, f"Page {doc.page} of 6")
+            canvas.drawRightString(self.PAGE_WIDTH - self.MARGIN_RIGHT, self.MARGIN_BOTTOM, f"Page {doc.page} of 6")
             canvas.restoreState()
 
         # Page 1
