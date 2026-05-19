@@ -40,7 +40,7 @@ except ImportError:
 # Workers
 # =============================================================================
 
-TITLE_CASE_FIELDS = {"name", "clinician", "hospital"}
+TITLE_CASE_FIELDS = {"name", "clinician"}
 
 
 def title_case_words(value):
@@ -56,10 +56,71 @@ def title_case_words(value):
     )
 
 
+# Known medical/hospital acronyms that must always appear in full uppercase.
+_HOSPITAL_ACRONYMS = {
+    'AIIMS', 'JIPMER', 'NIMHANS', 'PGIMER', 'SGPGI', 'NIMS', 'AFMC',
+    'CMC', 'MGM', 'KMC', 'GMC', 'RMC', 'SMS', 'IMS', 'PGI',
+    'KIMS', 'RIMS', 'MIMS', 'SIMS', 'JSS', 'SDM', 'ESI', 'ESIC',
+    'AMC', 'SRMC', 'TNMC', 'IVF', 'IUI', 'ICSI', 'FET', 'ART',
+    'ENT', 'ICU', 'NICU', 'PICU', 'OPD', 'IPD', 'MRI', 'CT',
+}
+
+# Common full words (not abbreviations) that should NOT be uppercased in hospital names.
+_HOSP_COMMON_WORDS = {
+    'the', 'and', 'of', 'for', 'at', 'in', 'on', 'to', 'by', 'as',
+    'new', 'old', 'big', 'one', 'two', 'all', 'far', 'near',
+    'sri', 'max', 'sun', 'bay', 'raj', 'ram', 'sir',
+    'care', 'city', 'life', 'star', 'hill', 'park', 'hope', 'cure',
+    'lane', 'road', 'lake', 'vale', 'mart', 'corp',
+}
+
+
+def fmt_hospital(value):
+    """Format a hospital/clinic name word-by-word:
+    - Known acronyms whitelist → ALL CAPS
+    - No vowels (consonant-only) → ALL CAPS
+    - Short alphabetic word (≤4 chars) not in common-words list → ALL CAPS
+    - All-caps word ≤6 chars when not a 'shouted' all-caps phrase → ALL CAPS
+    - Everything else → Title Case
+    """
+    tokens = str(value or '').strip().split()
+    if not tokens:
+        return ''
+
+    all_upper_input = all(t.isupper() or not t.isalpha() for t in tokens)
+    # "Shouted": user typed entire multi-word name in caps with at least one long word
+    looks_like_shouted = (
+        all_upper_input and len(tokens) > 1 and any(len(t) > 6 for t in tokens)
+    )
+
+    def _fmt_word(w):
+        upper = w.upper()
+        lower = w.lower()
+        if upper in _HOSPITAL_ACRONYMS:
+            return upper
+        if w.isalpha() and not any(c in 'aeiouAEIOU' for c in w):
+            return upper
+        if w.isalpha() and len(w) <= 4 and lower not in _HOSP_COMMON_WORDS:
+            return upper
+        if not looks_like_shouted and w.isupper() and w.isalpha() and len(w) <= 6 and lower not in _HOSP_COMMON_WORDS:
+            return upper
+        return w.capitalize()
+
+    return ' '.join(_fmt_word(tok) for tok in tokens)
+
+
 def normalize_title_case_fields(patient_info):
     for key in TITLE_CASE_FIELDS:
         if key in patient_info:
             patient_info[key] = title_case_words(patient_info.get(key, ""))
+    if 'hospital' in patient_info:
+        patient_info['hospital'] = fmt_hospital(patient_info.get('hospital', ''))
+    if 'clinician_qual' in patient_info:
+        # Qualifications are always abbreviations — uppercase all letter sequences
+        patient_info['clinician_qual'] = re.sub(
+            r'[A-Za-z]+', lambda m: m.group().upper(),
+            str(patient_info.get('clinician_qual', ''))
+        )
     return patient_info
 
 
@@ -123,7 +184,7 @@ class BatchWorker(QThread):
                 p_info = normalize_title_case_fields({k: str(p.get(k, "")) for k in [
                     "name","pin","dob","dob_type","ga","sample_id",
                     "collection_date","received_date","preg_status",
-                    "preg_type","clinician","hospital","indication","specimen"]})
+                    "preg_type","clinician","clinician_qual","hospital","indication","specimen"]})
 
                 base = report_base_filename(p_info.get("name", name), self.branding)
                 if self.do_pdf:
@@ -364,6 +425,7 @@ class NIPTApp(QMainWindow):
             ("preg_status",     "Pregnancy Status"),
             ("preg_type",       "Pregnancy Type"),
             ("clinician",       "Referring Clinician"),
+            ("clinician_qual",  "Qualification"),
             ("hospital",        "Hospital / Clinic"),
             ("specimen",        "Specimen Type"),
             ("indication",      "Clinical Indication"),
@@ -900,7 +962,8 @@ class NIPTApp(QMainWindow):
                     "preg_status":     str(p.get("Pregnancy status",      p.get("Status",""))),
                     "preg_type":       str(p.get("Pregnancy type",        "")),
                     "clinician":       title_case_words(p.get("Referring Clinician",   p.get("Ref Doctor",""))),
-                    "hospital":        title_case_words(p.get("Hospital",              "")),
+                    "clinician_qual":  str(p.get("Qualification", p.get("Clinician Qualification", ""))),
+                    "hospital":        fmt_hospital(p.get("Hospital",              "")),
                     "indication":      str(p.get("Indication",            "")),
                     "specimen":        str(p.get("Specimen",              "")),
                     "ff":              str(ff_pct),
@@ -993,6 +1056,7 @@ class NIPTApp(QMainWindow):
             ("preg_status",     "Pregnancy Status"),
             ("preg_type",       "Pregnancy Type"),
             ("clinician",       "Referring Clinician"),
+            ("clinician_qual",  "Qualification"),
             ("hospital",        "Hospital / Clinic"),
             ("specimen",        "Specimen Type"),
             ("indication",      "Clinical Indication"),

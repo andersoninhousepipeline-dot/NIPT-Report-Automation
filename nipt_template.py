@@ -4,6 +4,7 @@ Version: 3.0 (100% Accuracy Refinement)
 """
 
 import os
+import re
 import sys
 import base64
 import tempfile
@@ -291,8 +292,8 @@ class NIPTReportTemplate:
         
         ff = z_scores.get('fetal_fraction', 0)
         overall_risk = "Low risk"
-        is_high = any(abs(z_scores.get(f'chr{i}', 0)) > (2.8 if i in [13,18,21] else 6.0) for i in range(1, 23))
-        if is_high or abs(z_scores.get('chrX', 0)) > 6.0: overall_risk = "High risk"
+        is_high = any(z_scores.get(f'chr{i}', 0) > (2.8 if i in [13,18,21] else 6.0) for i in range(1, 23))
+        if is_high or z_scores.get('chrX', 0) > 6.0: overall_risk = "High risk"
         
         story.append(self._create_section_header("Result Summary"))
         story.append(Spacer(1, 3))
@@ -446,29 +447,34 @@ class NIPTReportTemplate:
         
         def fmt_date(d):
             if not d: return ""
-            import re
             m = re.match(r'(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})', d)
             if m: return f"{int(m.group(3)):02d}/{int(m.group(2)):02d}/{m.group(1)}"
             m = re.match(r'(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})', d)
             if m: return f"{int(m.group(1)):02d}/{int(m.group(2)):02d}/{m.group(3)}"
             return d
-            
+
+        # Any alphabetic word ≤5 chars in a pregnancy field is a medical abbreviation → ALL CAPS
+        _preg_abbr = re.compile(r'\b([A-Za-z]{1,5})\b')
+        def fmt_preg(text):
+            return _preg_abbr.sub(lambda mo: mo.group().upper(), text.title())
+
         # 4-Column Table for precise colon alignment
         dob_label = data.get('dob_type', 'Date of Birth')
+        _clin_name = data.get('clinician', '')
+        _clin_qual = data.get('clinician_qual', '').strip()
+        clinician_display = f"{_clin_name}, {_clin_qual}" if _clin_name and _clin_qual else _clin_name or _clin_qual
         table_data = [
             [L("Patient name"), V(data.get('name','')), L("Specimen"), V(data.get('specimen','Peripheral blood').title())],
             [L(dob_label), V(fmt_date(data.get('dob',''))), L("PIN"), V(data.get('pin',''))],
             [L("Gestational Age"), V(data.get('ga','')), L("Sample Number"), V(data.get('sample_id',''))],
-            [L("Pregnancy Type; status"), V(f"{data.get('preg_type','').title()}; {data.get('preg_status','').title()}".strip('; ')), L("Sample collection date"), V(fmt_date(data.get('collection_date','')))],
-            [L("Referring Clinician"), V(data.get('clinician','')), L("Sample received date"), V(fmt_date(data.get('received_date','')))],
+            [L("Pregnancy Type; status"), V(f"{fmt_preg(data.get('preg_type',''))}; {fmt_preg(data.get('preg_status',''))}".strip('; ')), L("Sample collection date"), V(fmt_date(data.get('collection_date','')))],
+            [L("Referring Clinician"), V(clinician_display), L("Sample received date"), V(fmt_date(data.get('received_date','')))],
             [L("Hospital/Clinic"), V(data.get('hospital','')), L("Report date"), V(fmt_date(data.get('report_date', datetime.now().strftime('%d/%m/%Y'))))]
         ]
         
-        # Column widths: Label (~25%), Value (~25%), Label (~25%), Value (~25%)
-        # Adjusted slightly to allow long labels like "Pregnancy Type; status"
         w = self.CONTENT_WIDTH
-        col_widths = [w*0.22, w*0.28, w*0.23, w*0.27]
-        
+        col_widths = [w*0.20, w*0.44, w*0.23, w*0.13]
+
         t = Table(table_data, colWidths=col_widths)
         t.setStyle(TableStyle([
             ('FONTNAME', (0,0), (-1,-1), main_bold),
@@ -477,8 +483,8 @@ class NIPTReportTemplate:
             ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
             ('BOTTOMPADDING', (0,0), (-1,-1), 4),
             ('TOPPADDING', (0,0), (-1,-1), 4),
-            ('LEFTPADDING', (0,0), (-1,-1), 5),
-            ('RIGHTPADDING', (0,0), (-1,-1), 5),
+            ('LEFTPADDING', (0,0), (-1,-1), 3),
+            ('RIGHTPADDING', (0,0), (-1,-1), 3),
             ('BACKGROUND', (0,0), (-1,-1), colors.HexColor(self.COLORS['patient_info_bg'])),
         ]))
         return t
@@ -497,7 +503,7 @@ class NIPTReportTemplate:
         value_style_center = ParagraphStyle(name='ST_Value_Center', parent=self.styles['Value'], alignment=TA_CENTER)
         
         for name, val, thresh in targets:
-            risk = "Low risk" if abs(val) < thresh else "High risk"
+            risk = "Low risk" if val <= thresh else "High risk"
             risk_color = self.COLORS['low_risk'] if risk == "Low risk" else self.COLORS['high_risk']
             risk_text = f"<font color='{risk_color}'><b>{risk}</b></font>"
             table_data.append([Paragraph(name, value_style_center), Paragraph(risk_text, value_style_center)])
@@ -531,7 +537,7 @@ class NIPTReportTemplate:
         for i in range(1, 23):
             val = z_scores.get(f'chr{i}', 0)
             thresh = 2.8 if i in [13, 18, 21] else 6.0
-            risk = "Low risk" if abs(val) < thresh else "High risk"
+            risk = "Low risk" if val <= thresh else "High risk"
             ref = "-6&lt;Z score&lt;2.8" if i in [13, 18, 21] else "-6&lt;Z score&lt;6"
             table_data.append([
                 Paragraph(f"Chromosome {i}", value_style_center),

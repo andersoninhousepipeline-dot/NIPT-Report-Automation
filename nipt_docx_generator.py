@@ -159,8 +159,8 @@ class NIPTDocxGenerator:
         
         ff = z_scores.get('fetal_fraction', 0)
         overall_risk = "Low risk"
-        is_high = any(abs(z_scores.get(f'chr{i}', 0)) > (2.8 if i in [13,18,21] else 6.0) for i in range(1, 23))
-        if is_high or abs(z_scores.get('chrX', 0)) > 6.0: overall_risk = "High risk"
+        is_high = any(z_scores.get(f'chr{i}', 0) > (2.8 if i in [13,18,21] else 6.0) for i in range(1, 23))
+        if is_high or z_scores.get('chrX', 0) > 6.0: overall_risk = "High risk"
         
         self._add_section_header("Result Summary")
         res_table = self.doc.add_table(rows=1, cols=2)
@@ -348,30 +348,36 @@ class NIPTDocxGenerator:
         h._p.get_or_add_pPr().append(pborder)
 
     def _add_patient_grid(self, data):
+        import re
         def fmt_date(d):
             if not d: return ""
-            import re
             m = re.match(r'(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})', d)
             if m: return f"{int(m.group(3)):02d}-{int(m.group(2)):02d}-{m.group(1)}"
             m = re.match(r'(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})', d)
             if m: return f"{int(m.group(1)):02d}-{int(m.group(2)):02d}-{m.group(3)}"
             return d
-            
+
+        _preg_abbr = re.compile(r'\b([A-Za-z]{1,5})\b')
+        def fmt_preg(text):
+            return _preg_abbr.sub(lambda mo: mo.group().upper(), text.title())
+
         table = self.doc.add_table(rows=6, cols=4)
         table.autofit = False
-        # Set column widths roughly to 22%, 28%, 23%, 27% as in PDF
-        table.columns[0].width = Inches(1.4)
-        table.columns[1].width = Inches(1.8)
+        table.columns[0].width = Inches(1.3)
+        table.columns[1].width = Inches(2.85)
         table.columns[2].width = Inches(1.5)
-        table.columns[3].width = Inches(1.8)
+        table.columns[3].width = Inches(0.85)
 
         dob_label = data.get('dob_type', 'Date of Birth')
+        _clin_name = data.get('clinician', '')
+        _clin_qual = data.get('clinician_qual', '').strip()
+        clinician_display = f"{_clin_name}, {_clin_qual}" if _clin_name and _clin_qual else _clin_name or _clin_qual
         mapping = [
             ("Patient name", data.get('name',''), "Specimen", data.get('specimen','Peripheral blood').title()),
             (dob_label, fmt_date(data.get('dob','')), "PIN", data.get('pin','')),
             ("Gestational Age", data.get('ga',''), "Sample Number", data.get('sample_id','')),
-            ("Pregnancy Type; status", f"{data.get('preg_type','').title()}; {data.get('preg_status','').title()}".strip('; '), "Sample collection date", fmt_date(data.get('collection_date',''))),
-            ("Referring Clinician", data.get('clinician',''), "Sample received date", fmt_date(data.get('received_date',''))),
+            ("Pregnancy Type; status", f"{fmt_preg(data.get('preg_type',''))}; {fmt_preg(data.get('preg_status',''))}".strip('; '), "Sample collection date", fmt_date(data.get('collection_date',''))),
+            ("Referring Clinician", clinician_display, "Sample received date", fmt_date(data.get('received_date',''))),
             ("Hospital/Clinic", data.get('hospital',''), "Report date", fmt_date(data.get('report_date', datetime.now().strftime('%d-%m-%Y'))))
         ]
         
@@ -429,7 +435,7 @@ class NIPTDocxGenerator:
             row.cells[1].vertical_alignment = WD_CELL_VERTICAL_ALIGNMENT.CENTER
             self._set_cell_background(row.cells[0], self.COLORS['grey_bg'])
             self._set_cell_background(row.cells[1], self.COLORS['grey_bg'])
-            risk = "Low risk" if abs(val) < thresh else "High risk"
+            risk = "Low risk" if val <= thresh else "High risk"
             p = row.cells[1].paragraphs[0]
             p.alignment = WD_ALIGN_PARAGRAPH.CENTER
             r_run = p.add_run(risk)
@@ -452,7 +458,7 @@ class NIPTDocxGenerator:
         for i in range(1, 23):
             val = z_scores.get(f'chr{i}', 0)
             thresh = 2.8 if i in [13, 18, 21] else 6.0
-            risk = "Low risk" if abs(val) < thresh else "High risk"
+            risk = "Low risk" if val <= thresh else "High risk"
             ref = "-6<Z score<2.8" if i in [13, 18, 21] else "-6<Z score<6"
             row = table.rows[i]
             row.cells[0].text = f"  Chromosome {i}"
