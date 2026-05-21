@@ -25,7 +25,7 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfbase.pdfmetrics import registerFontFamily
 
-from nipt_assets import HEADER_LOGO_B64, FOOTER_BANNER_B64
+from nipt_assets import HEADER_LOGO_B64, FOOTER_BANNER_B64, GENQA_LOGO_B64
 
 class NIPTReportTemplate:
     """Template engine for NIPS reports with 100% Layout Accuracy"""
@@ -228,21 +228,23 @@ class NIPTReportTemplate:
                 except: pass
             # Title is now handled in the story flow for better layout control
             
-            # Footer text with address
+            # Footer banner (with logo mode only)
             if with_logo:
                 try:
                     footer_data = base64.b64decode(FOOTER_BANNER_B64)
                     f_img = Image(BytesIO(footer_data), width=468, height=66)
                     f_img.drawOn(canvas, 72, 10)
                 except: pass
-            else:
-                # No address/contact text required per user request
-                pass
-            
-            # Pagination in Footer
+
+            # GenQA logo and page number — always shown in both modes
+            try:
+                genqa_data = base64.b64decode(GENQA_LOGO_B64)
+                gq_img = Image(BytesIO(genqa_data), width=85, height=40)
+                gq_img.drawOn(canvas, self.PAGE_WIDTH - self.MARGIN_RIGHT - 85, 78)
+            except: pass
             canvas.setFont(self._get_font('GillSansMT', 'Helvetica'), 12)
             canvas.setFillColor(colors.black)
-            canvas.drawRightString(self.PAGE_WIDTH - self.MARGIN_RIGHT, self.MARGIN_BOTTOM, f"Page {doc.page} of 6")
+            canvas.drawRightString(self.PAGE_WIDTH - self.MARGIN_RIGHT, 74, f"Page {doc.page} of 6")
             canvas.restoreState()
 
         # Page 1
@@ -473,7 +475,7 @@ class NIPTReportTemplate:
         ]
         
         w = self.CONTENT_WIDTH
-        col_widths = [w*0.20, w*0.44, w*0.23, w*0.13]
+        col_widths = [w*0.20, w*0.38, w*0.22, w*0.20]
 
         t = Table(table_data, colWidths=col_widths)
         t.setStyle(TableStyle([
