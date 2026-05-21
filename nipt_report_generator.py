@@ -76,31 +76,15 @@ _HOSP_COMMON_WORDS = {
 
 
 def fmt_hospital(value):
-    """Format a hospital/clinic name word-by-word:
-    - Known acronyms whitelist → ALL CAPS
-    - No vowels (consonant-only) → ALL CAPS
-    - Short alphabetic word (≤4 chars) not in common-words list → ALL CAPS
-    - All-caps word ≤6 chars when not a 'shouted' all-caps phrase → ALL CAPS
-    - Everything else → Title Case
-    """
     tokens = str(value or '').strip().split()
     if not tokens:
         return ''
 
-    all_upper_input = all(t.isupper() or not t.isalpha() for t in tokens)
-    # "Shouted": user typed entire multi-word name in caps with at least one long word
-    looks_like_shouted = (
-        all_upper_input and len(tokens) > 1 and any(len(t) > 6 for t in tokens)
-    )
-
     def _fmt_word(w):
         upper = w.upper()
-        lower = w.lower()
         if upper in _HOSPITAL_ACRONYMS:
             return upper
         if w.isalpha() and not any(c in 'aeiouAEIOU' for c in w):
-            return upper
-        if not looks_like_shouted and w.isupper() and w.isalpha() and len(w) <= 6 and lower not in _HOSP_COMMON_WORDS:
             return upper
         return w.capitalize()
 
