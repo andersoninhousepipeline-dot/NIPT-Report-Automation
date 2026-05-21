@@ -903,6 +903,28 @@ class NIPTApp(QMainWindow):
 
     def _load_excel(self, path):
         import pandas as pd
+
+        def _norm_id(val):
+            """Normalize a sample ID: strip whitespace, convert float-int to plain int string."""
+            s = str(val).strip()
+            try:
+                f = float(s)
+                if f == int(f):
+                    return str(int(f))
+            except Exception:
+                pass
+            return s
+
+        def _safe_float(val):
+            """Return float or 0.0; handles NaN, None, and non-numeric strings."""
+            if val is None:
+                return 0.0
+            try:
+                f = float(val)
+                return 0.0 if math.isnan(f) else f
+            except Exception:
+                return 0.0
+
         try:
             xls   = pd.ExcelFile(path)
             sname = "Sheet1" if "Sheet1" in xls.sheet_names else xls.sheet_names[0]
@@ -916,21 +938,54 @@ class NIPTApp(QMainWindow):
             if "Sheet2" in xls.sheet_names:
                 df_z = pd.read_excel(xls, "Sheet2")
                 df_z.columns = [str(c).strip() for c in df_z.columns]
+
+                # Normalize Sheet2 column names to canonical keys regardless of spacing/case
+                col_rename = {}
+                for col in df_z.columns:
+                    norm = str(col).strip().lower().replace(' ', '').replace('_', '').replace('-', '')
+                    for i in range(1, 23):
+                        if norm in (f"chr{i}", f"chromosome{i}", f"chrom{i}"):
+                            col_rename[col] = f"chr{i}"
+                            break
+                    else:
+                        if norm in ('chrx', 'chromosomex', 'chromx'):
+                            col_rename[col] = 'chrX'
+                        elif norm in ('fetaldna', 'fetalfraction', 'fetaldnafraction',
+                                      'fetaldna%', 'fetalfraction%', 'ff'):
+                            col_rename[col] = 'Fetal DNA'
+                if col_rename:
+                    df_z = df_z.rename(columns=col_rename)
+
                 id1 = next((c for c in ["Sample ID", "Sample Name"] if c in df.columns),   None)
                 id2 = next((c for c in ["Sample ID", "Sample"]      if c in df_z.columns), None)
                 if id1 and id2:
-                    # Normalize both ID columns to str so mixed int/string IDs match correctly
-                    df[id1]   = df[id1].astype(str).str.strip()
-                    df_z[id2] = df_z[id2].astype(str).str.strip()
-                    df = pd.merge(df, df_z, left_on=id1, right_on=id2, how="left")
+                    # Normalize IDs: strip whitespace + convert "372553431.0" → "372553431"
+                    df[id1]   = df[id1].apply(_norm_id)
+                    df_z[id2] = df_z[id2].apply(_norm_id)
+
+                    # Before merging, record which Sheet1 rows have no matching Sheet2 ID
+                    # and which Sheet2 rows have no matching Sheet1 ID — for positional fallback
+                    matched_ids      = set(df[id1]) & set(df_z[id2])
+                    unmatched_s1_pos = [i for i, v in enumerate(df[id1]) if v not in matched_ids]
+                    leftover_z       = df_z[~df_z[id2].isin(matched_ids)].reset_index(drop=True)
+
+                    df = pd.merge(df, df_z, left_on=id1, right_on=id2, how="left").reset_index(drop=True)
+
+                    # Positional fallback: pair remaining unmatched Sheet1 rows with leftover
+                    # Sheet2 rows in their original order (handles wrong/mistyped IDs and
+                    # blank Sample IDs where the lab used a different identifier in Sheet2)
+                    if len(unmatched_s1_pos) > 0 and len(unmatched_s1_pos) == len(leftover_z):
+                        z_cols = [c for c in df_z.columns if c != id2]
+                        for pos, s1_pos in enumerate(unmatched_s1_pos):
+                            for col in z_cols:
+                                if col in df.columns:
+                                    df.at[s1_pos, col] = leftover_z.at[pos, col]
 
             raw = df.to_dict("records")
             # Normalise to internal keys
             self.batch_patients = []
             for p in raw:
-                ff = p.get("Fetal DNA", p.get("FF", 0))
-                try:   ff = float(ff)
-                except: ff = 0.0
+                ff     = _safe_float(p.get("Fetal DNA", p.get("FF", 0)))
                 ff_pct = ff * 100 if ff < 1 else ff
 
                 bdp = {
@@ -951,16 +1006,9 @@ class NIPTApp(QMainWindow):
                     "ff":              str(ff_pct),
                 }
                 for i in range(1, 23):
-                    try:
-                        val = float(p.get(f"chr{i}", 0) or 0)
-                        bdp[f"chr{i}"] = f"{math.trunc(val * 100) / 100:.2f}"
-                    except:
-                        bdp[f"chr{i}"] = "0.00"
-                try:
-                    val = float(p.get("chrX", 0) or 0)
-                    bdp["chrX"] = f"{math.trunc(val * 100) / 100:.2f}"
-                except:
-                    bdp["chrX"] = "0.00"
+                    val = _safe_float(p.get(f"chr{i}", 0))
+                    bdp[f"chr{i}"] = f"{math.trunc(val * 100) / 100:.2f}"
+                bdp["chrX"] = f"{math.trunc(_safe_float(p.get('chrX', 0)) * 100) / 100:.2f}"
 
                 self.batch_patients.append(bdp)
 
