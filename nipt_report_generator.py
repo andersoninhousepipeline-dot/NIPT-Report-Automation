@@ -100,8 +100,6 @@ def fmt_hospital(value):
             return upper
         if w.isalpha() and not any(c in 'aeiouAEIOU' for c in w):
             return upper
-        if w.isalpha() and len(w) <= 4 and lower not in _HOSP_COMMON_WORDS:
-            return upper
         if not looks_like_shouted and w.isupper() and w.isalpha() and len(w) <= 6 and lower not in _HOSP_COMMON_WORDS:
             return upper
         return w.capitalize()
