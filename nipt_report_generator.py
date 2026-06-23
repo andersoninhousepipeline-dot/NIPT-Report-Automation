@@ -106,29 +106,31 @@ def normalize_title_case_fields(patient_info):
     return patient_info
 
 
-def report_base_filename(patient_name, with_logo):
+def report_base_filename(patient_name, with_logo, template=1):
     name = title_case_words(patient_name) or "Patient"
     name = re.sub(r'[<>:"/\\|?*]+', "", name)
     name = re.sub(r"\s+", "_", name).strip("_.")
     suffix = "with_logo" if with_logo else "without_logo"
-    return f"{name or 'Patient'}_NIPT_Report_{suffix}"
+    tmpl_tag = "_T2" if template == 2 else ""
+    return f"{name or 'Patient'}_NIPT_Report{tmpl_tag}_{suffix}"
 
 
 class PreviewWorker(QThread):
     finished = pyqtSignal(str)
     error    = pyqtSignal(str)
 
-    def __init__(self, p_info, z_scores, output_path, show_logo=True):
+    def __init__(self, p_info, z_scores, output_path, show_logo=True, template=1):
         super().__init__()
         self.p_info      = p_info
         self.z_scores    = z_scores
         self.output_path = output_path
         self.show_logo   = show_logo
+        self.template    = template
 
     def run(self):
         try:
             from nipt_template import NIPTReportTemplate
-            NIPTReportTemplate(self.output_path).generate(
+            NIPTReportTemplate(self.output_path, template=self.template).generate(
                 self.p_info, self.z_scores, with_logo=self.show_logo)
             self.finished.emit(self.output_path)
         except Exception as e:
@@ -140,13 +142,14 @@ class BatchWorker(QThread):
     finished = pyqtSignal(int, int)
     error    = pyqtSignal(str)
 
-    def __init__(self, patients, out_dir, do_pdf, do_docx, branding):
+    def __init__(self, patients, out_dir, do_pdf, do_docx, branding, template=1):
         super().__init__()
         self.patients  = patients
         self.out_dir   = out_dir
         self.do_pdf    = do_pdf
         self.do_docx   = do_docx
         self.branding  = branding
+        self.template  = template
 
     def run(self):
         from nipt_template       import NIPTReportTemplate
@@ -168,12 +171,12 @@ class BatchWorker(QThread):
                     "collection_date","received_date","preg_status",
                     "preg_type","clinician","clinician_qual","hospital","indication","specimen"]})
 
-                base = report_base_filename(p_info.get("name", name), self.branding)
+                base = report_base_filename(p_info.get("name", name), self.branding, self.template)
                 if self.do_pdf:
-                    NIPTReportTemplate(os.path.join(self.out_dir, base+".pdf")).generate(
+                    NIPTReportTemplate(os.path.join(self.out_dir, base+".pdf"), template=self.template).generate(
                         p_info, z, with_logo=self.branding)
                 if self.do_docx:
-                    NIPTDocxGenerator(os.path.join(self.out_dir, base+".docx")).generate(
+                    NIPTDocxGenerator(os.path.join(self.out_dir, base+".docx"), template=self.template).generate(
                         p_info, z, with_logo=self.branding)
                 count += 1
             except Exception as e:
@@ -351,12 +354,17 @@ class NIPTApp(QMainWindow):
         self.cb_docx     = QCheckBox("DOCX");     self.cb_docx.setChecked(True)
         self.cb_branding = QCheckBox("With Branding Logo"); self.cb_branding.setChecked(True)
         self.cb_branding.stateChanged.connect(self._schedule_preview)
+        self.template_combo = QComboBox()
+        self.template_combo.addItems(["Template 1", "Template 2"])
+        self.template_combo.currentIndexChanged.connect(self._schedule_preview)
+        self.template_combo.currentIndexChanged.connect(self._schedule_batch_preview)
         self.out_dir_edit = QLineEdit()
         self.out_dir_edit.setPlaceholderText("Select output folder …")
         btn_br = QPushButton("Browse")
         btn_br.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_DirOpenIcon))
         btn_br.clicked.connect(self._browse_out)
 
+        fl.addWidget(QLabel("Template:")); fl.addWidget(self.template_combo)
         for w in [self.cb_pdf, self.cb_docx, self.cb_branding]:
             fl.addWidget(w)
         fl.addSpacing(20); fl.addWidget(QLabel("Output Folder:"))
@@ -492,7 +500,9 @@ class NIPTApp(QMainWindow):
 
         right_v.addWidget(refresh)
         splitter.addWidget(right)
-        splitter.setSizes([560, 700])
+        splitter.setSizes([420, 1100])
+        splitter.setStretchFactor(0, 0)
+        splitter.setStretchFactor(1, 1)
 
         # Debounce timer (1 s like PGT-A)
         self._preview_timer = QTimer()
@@ -608,10 +618,12 @@ class NIPTApp(QMainWindow):
 
         prev_v.addWidget(prev_refresh)
         editor_preview.addWidget(prev_grp)
-        editor_preview.setSizes([500, 500])
+        editor_preview.setSizes([420, 900])
+        editor_preview.setStretchFactor(0, 0)
+        editor_preview.setStretchFactor(1, 1)
 
         c_h.addWidget(editor_preview)
-        c_h.setStretch(0, 1); c_h.setStretch(1, 4)
+        c_h.setStretch(0, 1); c_h.setStretch(1, 6)
         layout.addWidget(content)
 
         # Batch preview timer
@@ -765,12 +777,17 @@ class NIPTApp(QMainWindow):
         self.cb_pdf.setChecked(self.settings.value("do_pdf",   "true") == "true")
         self.cb_docx.setChecked(self.settings.value("do_docx",  "true") == "true")
         self.cb_branding.setChecked(self.settings.value("branding","true") == "true")
+        try:
+            self.template_combo.setCurrentIndex(int(self.settings.value("template", "1")) - 1)
+        except (TypeError, ValueError):
+            self.template_combo.setCurrentIndex(0)
 
     def _save_settings(self):
         self.settings.setValue("output_dir", self.out_dir_edit.text())
         self.settings.setValue("do_pdf",   str(self.cb_pdf.isChecked()).lower())
         self.settings.setValue("do_docx",  str(self.cb_docx.isChecked()).lower())
         self.settings.setValue("branding", str(self.cb_branding.isChecked()).lower())
+        self.settings.setValue("template", str(self.template_combo.currentIndex() + 1))
 
     def _browse_out(self):
         d = QFileDialog.getExistingDirectory(self, "Select Output Folder")
@@ -813,7 +830,8 @@ class NIPTApp(QMainWindow):
         self._preview_worker = PreviewWorker(
 
             p, z, self._preview_tmp,
-            show_logo=self.cb_branding.isChecked())
+            show_logo=self.cb_branding.isChecked(),
+            template=self.template_combo.currentIndex() + 1)
         self._preview_worker.finished.connect(self._on_preview_ready)
         self._preview_worker.error.connect(
             lambda e: self.preview_status.setText(f"❌ {e[:80]}"))
@@ -824,7 +842,7 @@ class NIPTApp(QMainWindow):
 
         if HAS_PDF_VIEW and self.pdf_doc:
             self.pdf_doc.close(); self.pdf_doc.load(path)
-            self.pdf_view.setZoomMode(QPdfView.ZoomMode.FitInView)
+            self.pdf_view.setZoomMode(QPdfView.ZoomMode.FitToWidth)
         else:
             if sys.platform == "win32":    os.startfile(path)
             elif sys.platform == "darwin": subprocess.run(["open", path])
@@ -843,13 +861,14 @@ class NIPTApp(QMainWindow):
             QMessageBox.warning(self, "No Output Folder", "Set an output folder first."); return
         self._save_settings()
         branding = self.cb_branding.isChecked()
-        base = report_base_filename(p.get("name", ""), branding)
+        template = self.template_combo.currentIndex() + 1
+        base = report_base_filename(p.get("name", ""), branding, template)
         try:
             if self.cb_pdf.isChecked():
-                NIPTReportTemplate(os.path.join(out, base+".pdf")).generate(
+                NIPTReportTemplate(os.path.join(out, base+".pdf"), template=template).generate(
                     p, z, with_logo=branding)
             if self.cb_docx.isChecked():
-                NIPTDocxGenerator(os.path.join(out, base+".docx")).generate(
+                NIPTDocxGenerator(os.path.join(out, base+".docx"), template=template).generate(
                     p, z, with_logo=branding)
             QMessageBox.information(self, "Saved", f"Exported: {base}")
         except Exception as e:
@@ -1182,11 +1201,12 @@ class NIPTApp(QMainWindow):
         p, z = self._collect_batch_editor()
         if p is None: return
         worker = PreviewWorker(p, z, self._batch_preview_tmp,
-                               show_logo=self.cb_branding.isChecked())
+                               show_logo=self.cb_branding.isChecked(),
+                               template=self.template_combo.currentIndex() + 1)
         def _on_batch_preview_ready(path):
             if HAS_PDF_VIEW and self.batch_pdf_doc:
                 self.batch_pdf_doc.close(); self.batch_pdf_doc.load(path)
-                self.batch_pdf_view.setZoomMode(QPdfView.ZoomMode.FitInView)
+                self.batch_pdf_view.setZoomMode(QPdfView.ZoomMode.FitToWidth)
         worker.finished.connect(_on_batch_preview_ready)
         worker.start()
         self._batch_preview_worker = worker  # keep reference alive
@@ -1229,12 +1249,13 @@ class NIPTApp(QMainWindow):
                 "received_date","preg_status","preg_type","clinician",
                 "hospital","indication","specimen"]})
             branding = self.cb_branding.isChecked()
-            base = report_base_filename(p_info.get("name", ""), branding)
+            template = self.template_combo.currentIndex() + 1
+            base = report_base_filename(p_info.get("name", ""), branding, template)
             if self.cb_pdf.isChecked():
-                NIPTReportTemplate(os.path.join(out, base+".pdf")).generate(
+                NIPTReportTemplate(os.path.join(out, base+".pdf"), template=template).generate(
                     p_info, z, with_logo=branding)
             if self.cb_docx.isChecked():
-                NIPTDocxGenerator(os.path.join(out, base+".docx")).generate(
+                NIPTDocxGenerator(os.path.join(out, base+".docx"), template=template).generate(
                     p_info, z, with_logo=branding)
             QMessageBox.information(self, "Done", f"Saved {base}")
         except Exception as e: QMessageBox.critical(self, "Error", str(e))
@@ -1270,7 +1291,8 @@ class NIPTApp(QMainWindow):
         self.batch_worker = BatchWorker(
             self.batch_patients, out,
             self.cb_pdf.isChecked(), self.cb_docx.isChecked(),
-            self.cb_branding.isChecked())
+            self.cb_branding.isChecked(),
+            self.template_combo.currentIndex() + 1)
         self.batch_worker.progress.connect(
             lambda v, s: (self.progress_bar.setValue(v), self.statusBar().showMessage(s)))
         self.batch_worker.finished.connect(
@@ -1407,5 +1429,5 @@ class NIPTApp(QMainWindow):
 if __name__ == "__main__":
     app    = QApplication(sys.argv)
     window = NIPTApp()
-    window.show()
+    window.showMaximized()
     sys.exit(app.exec())
