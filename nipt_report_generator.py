@@ -49,11 +49,14 @@ def title_case_words(value):
         word[:1].upper() + word[1:].lower()
         for word in str(value or "").strip().split()
     )
-    return re.sub(
+    text = re.sub(
         r"\b(Mr|Mrs|Ms|Dr)\.\s*([a-z])",
         lambda match: f"{match.group(1)}. {match.group(2).upper()}",
         text,
     )
+    # Hospital codes appended in parentheses, e.g. "Jane Doe (sdcgh12cf)",
+    # must always render in full caps regardless of how they were typed.
+    return re.sub(r"\(([^)]*)\)", lambda m: f"({m.group(1).upper()})", text)
 
 
 # Known medical/hospital acronyms that must always appear in full uppercase.
@@ -97,6 +100,9 @@ def normalize_title_case_fields(patient_info):
             patient_info[key] = title_case_words(patient_info.get(key, ""))
     if 'hospital' in patient_info:
         patient_info['hospital'] = fmt_hospital(patient_info.get('hospital', ''))
+    if 'preg_status' in patient_info:
+        # e.g. "TWIN" / "twin" / "TwIn" -> "Twin"
+        patient_info['preg_status'] = str(patient_info.get('preg_status', '')).strip().capitalize()
     if 'clinician_qual' in patient_info:
         # Qualifications are always abbreviations — uppercase all letter sequences
         patient_info['clinician_qual'] = re.sub(
@@ -355,7 +361,7 @@ class NIPTApp(QMainWindow):
         self.cb_branding = QCheckBox("With Branding Logo"); self.cb_branding.setChecked(True)
         self.cb_branding.stateChanged.connect(self._schedule_preview)
         self.template_combo = QComboBox()
-        self.template_combo.addItems(["Template 1", "Template 2"])
+        self.template_combo.addItems(["YOURGENE", "GENEMIND"])
         self.template_combo.currentIndexChanged.connect(self._schedule_preview)
         self.template_combo.currentIndexChanged.connect(self._schedule_batch_preview)
         self.out_dir_edit = QLineEdit()

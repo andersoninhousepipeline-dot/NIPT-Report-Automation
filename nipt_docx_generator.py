@@ -403,9 +403,19 @@ class NIPTDocxGenerator:
             if m: return f"{int(m.group(1)):02d}-{int(m.group(2)):02d}-{m.group(3)}"
             return d
 
-        _preg_abbr = re.compile(r'\b([A-Za-z]{1,5})\b')
+        # Only true medical/fertility abbreviations are forced to ALL CAPS;
+        # ordinary words like "Twin"/"Singleton" stay in normal title case.
+        _PREG_ABBR = {
+            'IVF', 'ICSI', 'IUI', 'FET', 'ART', 'ZIFT', 'GIFT',
+            'DCDA', 'MCDA', 'MCMA', 'DCDT', 'MCMT',
+        }
+        _preg_word = re.compile(r'\b([A-Za-z]+)\b')
         def fmt_preg(text):
-            return _preg_abbr.sub(lambda mo: mo.group().upper(), text.title())
+            titled = text.title()
+            return _preg_word.sub(
+                lambda mo: mo.group().upper() if mo.group().upper() in _PREG_ABBR else mo.group(),
+                titled,
+            )
 
         table = self.doc.add_table(rows=6, cols=4)
         table.autofit = False

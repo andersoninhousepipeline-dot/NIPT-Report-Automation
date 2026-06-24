@@ -497,10 +497,19 @@ class NIPTReportTemplate:
             if m: return f"{int(m.group(1)):02d}/{int(m.group(2)):02d}/{m.group(3)}"
             return d
 
-        # Any alphabetic word ≤5 chars in a pregnancy field is a medical abbreviation → ALL CAPS
-        _preg_abbr = re.compile(r'\b([A-Za-z]{1,5})\b')
+        # Only true medical/fertility abbreviations are forced to ALL CAPS;
+        # ordinary words like "Twin"/"Singleton" stay in normal title case.
+        _PREG_ABBR = {
+            'IVF', 'ICSI', 'IUI', 'FET', 'ART', 'ZIFT', 'GIFT',
+            'DCDA', 'MCDA', 'MCMA', 'DCDT', 'MCMT',
+        }
+        _preg_word = re.compile(r'\b([A-Za-z]+)\b')
         def fmt_preg(text):
-            return _preg_abbr.sub(lambda mo: mo.group().upper(), text.title())
+            titled = text.title()
+            return _preg_word.sub(
+                lambda mo: mo.group().upper() if mo.group().upper() in _PREG_ABBR else mo.group(),
+                titled,
+            )
 
         # 4-Column Table for precise colon alignment
         dob_label = data.get('dob_type', 'Date of Birth')
